@@ -32,8 +32,34 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         cache_logger_on_first_use=True,
     )
     logger.info("starting_app", app_name=settings.APP_NAME, env=settings.APP_ENV)
+
+    # --- Load domain plugins (auto-wires tools, agents, events, memory, routers) ---
+    from src.agents.registry import AgentRegistry
+    from src.domains.loader import load_domain_plugins, get_loaded_plugins
+    from src.events.bus import event_bus
+    from src.kernel.tool_registry import ToolRegistry
+
+    tool_registry = ToolRegistry()
+    agent_registry = AgentRegistry()
+
+    wiring_report = await load_domain_plugins(
+        app=app,
+        tool_registry=tool_registry,
+        agent_registry=agent_registry,
+        event_bus=event_bus,
+    )
+
+    # Store registries on app state for dependency injection
+    app.state.tool_registry = tool_registry
+    app.state.agent_registry = agent_registry
+    app.state.event_bus = event_bus
+    app.state.domain_wiring_report = wiring_report
+
     yield
+
     # --- Shutdown ---
+    for plugin in get_loaded_plugins().values():
+        await plugin.on_shutdown()
     logger.info("shutting_down_app")
 
 

@@ -63,6 +63,8 @@ dev = [
     "ruff>=0.3.0",
     "mypy>=1.8.0",
     "pre-commit>=3.6.0",
+    "aiosqlite>=0.20.0",
+    "respx>=0.21.0",
 ]
 
 [tool.ruff]
@@ -101,3 +103,8 @@ ignore_missing_imports = true
 asyncio_mode = "auto"
 testpaths = ["tests"]
 filterwarnings = ["ignore::DeprecationWarning"]
+markers = [
+    "req(id): Link test to a product requirement by ID (e.g. REQ-HEALTH-001)",
+    "scenario(id): Link test to a generated scenario by ID (e.g. SCN-REQ-PLAT-001-01)",
+    "drift: Nightly real-LLM drift test (requires RUN_DRIFT_TESTS=1 and OPENAI_API_KEY)",
+]

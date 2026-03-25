@@ -125,8 +125,23 @@ Services: `app` (8000), `worker`, `postgres` (5432), `redis` (6379), `minio` (90
 ## Running Tests
 
 ```bash
-pytest tests/ -v
+# Unit tests (fastest — < 2s)
+pytest tests/unit/ -v
+
+# All tests except drift (CI default)
+pytest tests/ -v --ignore=tests/drift
+
+# Architecture tests (verify domain wiring + requirement coverage)
+pytest tests/arch/ -v -s
+
+# Drift tests (nightly, requires real LLM)
+RUN_DRIFT_TESTS=1 OPENAI_API_KEY=sk-... pytest tests/drift/ -m drift -v
+
+# Coverage report
+pytest tests/ --cov=src --cov-report=html --ignore=tests/drift
 ```
+
+See [`tests/README.md`](tests/README.md) for the full test architecture and product-driven testing philosophy.
 
 ## Module Documentation
 
@@ -147,8 +162,11 @@ Each module has its own README:
 
 ## Design Documents
 
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — Product-driven ideology, domain plugin system, testing philosophy
 - [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md) — Full system architecture
 - [`docs/SCHEMA_DESIGN.md`](docs/SCHEMA_DESIGN.md) — Database schema reference
+- [`src/domains/README.md`](src/domains/README.md) — Domain plugin developer guide
+- [`tests/README.md`](tests/README.md) — Test suite architecture + requirement traceability
 
 ## Phase 0 Deliverables
 
