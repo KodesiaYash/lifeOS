@@ -1,0 +1,111 @@
+# AI Life OS — Structured Project Manifest
+# Machine-readable project map for LLM context injection (~200 tokens).
+# Always include this file when starting a new LLM session.
+# Last updated: 2026-03-25
+
+project:
+  name: AI Life OS
+  repo: /Users/ykodesia/Desktop/github/lifeOS
+  github: https://github.com/KodesiaYash/lifeOS
+  phase: phase-0-complete
+  next_phase: phase-1-domain-implementations
+  license: private
+
+stack:
+  language: python3.11+
+  web: fastapi
+  orm: sqlalchemy2.0-async
+  db: postgresql16+pgvector
+  cache: redis7
+  llm: litellm+openai
+  scheduling: apscheduler+arq
+  logging: structlog
+  config: pydantic-settings
+  containers: docker-compose
+
+modules:
+  - {name: shared, path: src/shared/, status: complete, desc: "DB, crypto, pagination, time"}
+  - {name: core, path: src/core/, status: complete, desc: "tenants, users, workspaces, domain registry"}
+  - {name: events, path: src/events/, status: complete, desc: "event bus pub/sub, event log"}
+  - {name: communication, path: src/communication/, status: complete, desc: "WhatsApp/Telegram/REST adapters"}
+  - {name: memory, path: src/memory/, status: complete, desc: "short-term Redis, structured SQL, semantic pgvector"}
+  - {name: knowledge, path: src/knowledge/, status: complete, desc: "document ingestion, chunking, embedding"}
+  - {name: retrieval, path: src/retrieval/, status: complete, desc: "hybrid RAG + reranker"}
+  - {name: kernel, path: src/kernel/, status: complete, desc: "LLM client, prompt/tool registries"}
+  - {name: orchestration, path: src/orchestration/, status: complete, desc: "workflow engine"}
+  - {name: agents, path: src/agents/, status: complete, desc: "ReAct agent runtime + registry"}
+  - {name: scheduling, path: src/scheduling/, status: complete, desc: "APScheduler + arq worker"}
+  - {name: connectors, path: src/connectors/, status: complete, desc: "external service framework"}
+
+domains:
+  health:
+    tools: [health.log_meal, health.log_exercise, health.log_sleep, health.get_nutrition_summary, health.get_exercise_summary]
+    agents: [health.nutrition_coach, health.fitness_advisor]
+    events: [health.meal_logged, health.vitals_recorded]
+    memory_categories: [dietary_preference, allergy, fitness_goal, health_metric, supplement]
+    status: stubs
+  finance:
+    tools: [finance.log_transaction, finance.get_spending_summary, finance.get_budget_status, finance.get_investment_summary]
+    agents: [finance.budget_advisor]
+    events: [finance.transaction_logged, finance.budget_updated]
+    memory_categories: [income_source, recurring_expense, financial_goal, investment_preference, budget_rule]
+    status: stubs
+  productivity:
+    tools: [productivity.create_task, productivity.complete_task, productivity.list_tasks, productivity.log_habit, productivity.get_daily_summary]
+    agents: [productivity.planner, productivity.focus_coach]
+    events: [productivity.task_created, productivity.task_completed]
+    memory_categories: [work_pattern, productivity_goal, project_context, habit_definition, priority_rule]
+    status: stubs
+  relationships:
+    tools: [relationships.log_interaction, relationships.create_contact, relationships.get_contact, relationships.schedule_event]
+    agents: [relationships.social_advisor]
+    events: [relationships.interaction_logged, relationships.reminder_due]
+    memory_categories: [contact_detail, relationship_note, social_preference, important_date]
+    status: stubs
+  learning:
+    tools: [learning.add_resource, learning.log_session, learning.get_progress, learning.capture_note]
+    agents: [learning.tutor, learning.study_planner]
+    events: [learning.resource_added, learning.session_logged]
+    memory_categories: [learning_goal, skill_level, learning_preference, book_note, course_progress]
+    status: stubs
+  home:
+    tools: [home.create_task, home.complete_task, home.add_to_shopping_list, home.get_maintenance_schedule]
+    agents: [home.household_manager]
+    events: [home.task_created, home.maintenance_due]
+    memory_categories: [home_layout, appliance_info, maintenance_schedule, shopping_preference, household_rule]
+    status: stubs
+
+totals:
+  tools: 26
+  agents: 9
+  event_handlers: 12
+  memory_categories: 29
+  requirements: 41
+  test_files: 22
+
+tests:
+  tiers: [unit, integration, e2e, drift, arch]
+  markers: [req, scenario, drift]
+  requirements_files: [platform, health, finance, productivity, relationships, learning, home]
+
+conventions:
+  tool_naming: "{domain}.{action}"
+  agent_naming: "{domain}.{role}"
+  event_naming: "{domain}.{past_tense_verb}"
+  handler_type: async-only
+  plugin_export: "plugin = MyPlugin()"
+  eventbus_internal: "_handlers (not _subscribers)"
+  stub_return: '{"status": "stub", "action": "...", "input": kwargs}'
+
+key_files:
+  app_entry: src/main.py
+  plugin_base: src/domains/plugin.py
+  domain_loader: src/domains/loader.py
+  event_bus: src/events/bus.py
+  tool_registry: src/kernel/tool_registry.py
+  agent_registry: src/agents/registry.py
+  root_conftest: tests/conftest.py
+  unit_conftest: tests/unit/conftest.py
+  arch_domain_integration: tests/arch/test_domain_integration.py
+  architecture_doc: ARCHITECTURE.md
+  llm_context: LLM_CONTEXT.md
