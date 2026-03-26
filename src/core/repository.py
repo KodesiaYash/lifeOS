@@ -3,6 +3,7 @@ Database access layer for core entities.
 
 Single-user mode: Only Settings and DomainRegistry repositories.
 """
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,9 +48,7 @@ class DomainRegistryRepository:
         return domain
 
     async def get_by_domain_id(self, domain_id: str) -> DomainRegistry | None:
-        result = await self.session.execute(
-            select(DomainRegistry).where(DomainRegistry.domain_id == domain_id)
-        )
+        result = await self.session.execute(select(DomainRegistry).where(DomainRegistry.domain_id == domain_id))
         return result.scalar_one_or_none()
 
     async def list_all(self) -> list[DomainRegistry]:
@@ -57,9 +56,7 @@ class DomainRegistryRepository:
         return list(result.scalars().all())
 
     async def list_active(self) -> list[DomainRegistry]:
-        result = await self.session.execute(
-            select(DomainRegistry).where(DomainRegistry.active.is_(True))
-        )
+        result = await self.session.execute(select(DomainRegistry).where(DomainRegistry.active.is_(True)))
         return list(result.scalars().all())
 
     async def update(self, domain_id: str, **kwargs: object) -> DomainRegistry | None:

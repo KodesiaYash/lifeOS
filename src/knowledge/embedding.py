@@ -1,6 +1,7 @@
 """
 Embedding service abstraction for generating vector embeddings.
 """
+
 import structlog
 
 from src.config import settings

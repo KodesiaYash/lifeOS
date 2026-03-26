@@ -1,11 +1,12 @@
 """
 In-process event bus with publish/subscribe and optional persistence.
 """
-import structlog
+
 from collections import defaultdict
 from collections.abc import Callable, Coroutine
 from typing import Any
 
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.events.schemas import PlatformEvent
@@ -58,6 +59,7 @@ class EventBus:
         # Persist to database if session provided
         if session is not None:
             from src.events.repository import EventRepository
+
             repo = EventRepository(session)
             await repo.persist(event)
 

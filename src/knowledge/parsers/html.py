@@ -2,6 +2,7 @@
 HTML/web page content parser stub.
 TODO: Implement using BeautifulSoup or similar.
 """
+
 import structlog
 
 logger = structlog.get_logger()

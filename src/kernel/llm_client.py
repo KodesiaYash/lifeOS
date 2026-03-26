@@ -2,6 +2,7 @@
 LLM provider abstraction via LiteLLM.
 Provides completion, structured output, and embedding calls.
 """
+
 from typing import Any
 
 import structlog

@@ -2,6 +2,7 @@
 Telegram channel adapter.
 Stub implementation — webhook parsing and message sending scaffolded.
 """
+
 import structlog
 
 from src.communication.adapters.base import ChannelAdapter

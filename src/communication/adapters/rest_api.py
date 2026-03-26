@@ -2,6 +2,7 @@
 REST API channel adapter.
 Pass-through adapter for direct API access — no external webhook needed.
 """
+
 import uuid
 
 import structlog

@@ -4,6 +4,7 @@ Routes through: intent classification → memory assembly → retrieval → tool
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import uuid
 
 import structlog
@@ -105,12 +106,8 @@ class GlobalOrchestrator:
             await self._emit_events(ctx)
 
             # 6. Update short-term memory
-            await self.short_term.add_to_message_history(
-                "user", ctx.user_message, session_id=ctx.session_id
-            )
-            await self.short_term.add_to_message_history(
-                "assistant", ctx.response_text, session_id=ctx.session_id
-            )
+            await self.short_term.add_to_message_history("user", ctx.user_message, session_id=ctx.session_id)
+            await self.short_term.add_to_message_history("assistant", ctx.response_text, session_id=ctx.session_id)
 
             logger.info(
                 "orchestration_complete",
@@ -165,15 +162,18 @@ class GlobalOrchestrator:
                 # Execute tool calls
                 for tc in result["tool_calls"]:
                     import json
+
                     tool_args = json.loads(tc["function"]["arguments"])
                     tool_result = await tool_registry.invoke(tc["function"]["name"], **tool_args)
 
                     messages.append({"role": "assistant", "content": None, "tool_calls": [tc]})
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": tc["id"],
-                        "content": json.dumps(tool_result.model_dump(), default=str),
-                    })
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tc["id"],
+                            "content": json.dumps(tool_result.model_dump(), default=str),
+                        }
+                    )
 
             # Final completion after tool calls
             return await self.llm.complete(messages=messages)

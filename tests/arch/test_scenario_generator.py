@@ -17,6 +17,7 @@ Tests:
   - test_platform_scenarios_covered: Platform scenarios have corresponding tests
   - test_scenario_report: Full scenario coverage report (informational)
 """
+
 import importlib
 import re
 from pathlib import Path
@@ -51,12 +52,14 @@ def _generate_scenarios(requirements: list[dict]) -> list[dict]:
     for req in requirements:
         for idx, criterion in enumerate(req["acceptance_criteria"], 1):
             scenario_id = f"SCN-{req['id']}-{idx:02d}"
-            scenarios.append({
-                "scenario_id": scenario_id,
-                "requirement_id": req["id"],
-                "description": criterion,
-                "priority": req["priority"],
-            })
+            scenarios.append(
+                {
+                    "scenario_id": scenario_id,
+                    "requirement_id": req["id"],
+                    "description": criterion,
+                    "priority": req["priority"],
+                }
+            )
     return scenarios
 
 
@@ -76,8 +79,8 @@ def _scan_for_scenario_markers() -> dict[str, list[str]]:
 
         for match in re.finditer(r'@pytest\.mark\.scenario\(["\']([^"\']+)["\']\)', source):
             scn_id = match.group(1)
-            rest = source[match.end():]
-            fn_match = re.search(r'(?:async\s+)?def\s+(test_\w+)', rest)
+            rest = source[match.end() :]
+            fn_match = re.search(r"(?:async\s+)?def\s+(test_\w+)", rest)
             if fn_match:
                 ref = f"{test_file.relative_to(tests_root)}::{fn_match.group(1)}"
                 coverage_map.setdefault(scn_id, []).append(ref)

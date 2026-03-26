@@ -3,6 +3,7 @@ Database access layer for workflow orchestration.
 
 Single-user mode: No tenant_id filtering.
 """
+
 import uuid
 
 from sqlalchemy import select, update
@@ -23,14 +24,12 @@ class WorkflowDefinitionRepository:
     async def get_by_id(self, definition_id: uuid.UUID) -> WorkflowDefinition | None:
         return await self.session.get(WorkflowDefinition, definition_id)
 
-    async def list_all(
-        self, domain: str | None = None, active_only: bool = True
-    ) -> list[WorkflowDefinition]:
+    async def list_all(self, domain: str | None = None, active_only: bool = True) -> list[WorkflowDefinition]:
         stmt = select(WorkflowDefinition)
         if domain:
             stmt = stmt.where(WorkflowDefinition.domain == domain)
         if active_only:
-            stmt = stmt.where(WorkflowDefinition.active == True)
+            stmt = stmt.where(WorkflowDefinition.active)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
@@ -38,7 +37,7 @@ class WorkflowDefinitionRepository:
         result = await self.session.execute(
             select(WorkflowDefinition).where(
                 WorkflowDefinition.trigger_type == trigger_type,
-                WorkflowDefinition.active == True,
+                WorkflowDefinition.active,
             )
         )
         return list(result.scalars().all())
@@ -56,14 +55,10 @@ class WorkflowExecutionRepository:
     async def get_by_id(self, execution_id: uuid.UUID) -> WorkflowExecution | None:
         return await self.session.get(WorkflowExecution, execution_id)
 
-    async def update_status(
-        self, execution_id: uuid.UUID, status: str, **kwargs: object
-    ) -> None:
+    async def update_status(self, execution_id: uuid.UUID, status: str, **kwargs: object) -> None:
         values = {"status": status, **kwargs}
         await self.session.execute(
-            update(WorkflowExecution)
-            .where(WorkflowExecution.id == execution_id)
-            .values(**values)
+            update(WorkflowExecution).where(WorkflowExecution.id == execution_id).values(**values)
         )
 
     async def list_active(self) -> list[WorkflowExecution]:

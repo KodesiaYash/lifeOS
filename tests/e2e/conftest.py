@@ -7,6 +7,7 @@ E2E tests:
   - Test complete user scenarios: message in → response out
   - Cassettes stored in tests/cassettes/
 """
+
 import json
 from pathlib import Path
 
@@ -47,8 +48,7 @@ class CassetteManager:
         """Get next recorded response for replay."""
         if self._call_index >= len(self.responses):
             raise RuntimeError(
-                f"Cassette '{self.name}' exhausted: {self._call_index} calls "
-                f"but only {len(self.responses)} recorded."
+                f"Cassette '{self.name}' exhausted: {self._call_index} calls but only {len(self.responses)} recorded."
             )
         resp = self.responses[self._call_index]
         self._call_index += 1
@@ -72,8 +72,10 @@ def cassette():
             else:
                 # record mode (or use mock)
     """
+
     def _factory(name: str) -> CassetteManager:
         return CassetteManager(name)
+
     return _factory
 
 
@@ -92,13 +94,15 @@ def mock_llm_for_e2e():
         "agent_response": "I've logged your breakfast: eggs and toast. That's approximately 350 calories, 21g protein.",
         "tool_call_response": {
             "content": None,
-            "tool_calls": [{
-                "id": "call_001",
-                "function": {
-                    "name": "health.log_meal",
-                    "arguments": '{"meal_type": "breakfast", "items": ["eggs", "toast"]}',
-                },
-            }],
+            "tool_calls": [
+                {
+                    "id": "call_001",
+                    "function": {
+                        "name": "health.log_meal",
+                        "arguments": '{"meal_type": "breakfast", "items": ["eggs", "toast"]}',
+                    },
+                }
+            ],
             "usage": {"prompt_tokens": 200, "completion_tokens": 50},
         },
         "final_response": "Logged your breakfast! Eggs and toast — approximately 350 calories (21g protein, 15g carbs, 18g fat). You're at 350/2000 calories for today.",

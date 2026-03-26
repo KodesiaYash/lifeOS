@@ -1,6 +1,7 @@
 """
 Productivity domain manifest — declares tools, agents, events, and workflows.
 """
+
 MANIFEST = {
     "domain_id": "productivity",
     "name": "Productivity",

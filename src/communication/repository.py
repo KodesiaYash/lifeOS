@@ -3,6 +3,7 @@ Database access layer for communication entities.
 
 Single-user mode: No tenant_id filtering.
 """
+
 import uuid
 from datetime import datetime
 
@@ -32,9 +33,7 @@ class ChannelIdentityRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def resolve(
-        self, channel_account_id: uuid.UUID, external_user_id: str
-    ) -> ChannelIdentity | None:
+    async def resolve(self, channel_account_id: uuid.UUID, external_user_id: str) -> ChannelIdentity | None:
         result = await self.session.execute(
             select(ChannelIdentity).where(
                 ChannelIdentity.channel_account_id == channel_account_id,
@@ -75,9 +74,12 @@ class ConversationRepository:
         channel_type: str,
     ) -> Conversation:
         result = await self.session.execute(
-            select(Conversation).where(
+            select(Conversation)
+            .where(
                 Conversation.channel_identity_id == channel_identity_id,
-            ).order_by(Conversation.started_at.desc()).limit(1)
+            )
+            .order_by(Conversation.started_at.desc())
+            .limit(1)
         )
         conversation = result.scalar_one_or_none()
         if conversation is not None:
@@ -113,15 +115,15 @@ class MessageRepository:
 
     async def exists_by_idempotency_key(self, idempotency_key: str) -> bool:
         result = await self.session.execute(
-            select(Message.id).where(
+            select(Message.id)
+            .where(
                 Message.idempotency_key == idempotency_key,
-            ).limit(1)
+            )
+            .limit(1)
         )
         return result.scalar_one_or_none() is not None
 
-    async def list_by_conversation(
-        self, conversation_id: uuid.UUID, limit: int = 50, offset: int = 0
-    ) -> list[Message]:
+    async def list_by_conversation(self, conversation_id: uuid.UUID, limit: int = 50, offset: int = 0) -> list[Message]:
         result = await self.session.execute(
             select(Message)
             .where(Message.conversation_id == conversation_id)

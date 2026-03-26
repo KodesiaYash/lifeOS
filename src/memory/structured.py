@@ -4,6 +4,7 @@ Stores discrete, queryable facts about the user (preferences, goals, habits, etc
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 

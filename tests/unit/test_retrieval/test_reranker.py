@@ -10,9 +10,9 @@ Tests:
   - test_importance_weight: Higher-importance items rank above equal-relevance peers
   - test_max_results_limit: Output respects max_results cap
 """
-import uuid
-from datetime import datetime, timedelta, timezone
 
+import uuid
+from datetime import UTC, datetime, timedelta
 
 from src.retrieval.reranker import Reranker
 from src.retrieval.schemas import RetrievalResult
@@ -24,7 +24,7 @@ def _result(content: str, score: float, created_at=None, importance=0.5) -> Retr
         source="test",
         content=content,
         relevance_score=score,
-        created_at=created_at or datetime.now(timezone.utc),
+        created_at=created_at or datetime.now(UTC),
         metadata={"importance": importance},
     )
 
@@ -55,7 +55,7 @@ class TestReranker:
 
     def test_recency_boost(self):
         """With recency_weight > 0, recent items rank above older ones at equal relevance."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         recent = _result("recent", 0.5, created_at=now)
         old = _result("old content here", 0.5, created_at=now - timedelta(days=30))
         ranked = self.reranker.rerank([old, recent], recency_weight=0.5, min_score=0.0)
@@ -76,7 +76,9 @@ class TestReranker:
         low_imp = _result("low importance", 0.7, importance=0.1)
         high_imp = _result("high importance", 0.7, importance=0.9)
         ranked = self.reranker.rerank(
-            [low_imp, high_imp], importance_weight=0.5, min_score=0.0,
+            [low_imp, high_imp],
+            importance_weight=0.5,
+            min_score=0.0,
         )
         # High importance item should rank first or equal
         assert ranked[0].metadata["importance"] >= ranked[-1].metadata["importance"]

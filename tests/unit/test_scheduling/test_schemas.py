@@ -8,12 +8,13 @@ Tests:
   - test_background_task_create: Valid background task with priority
   - test_background_task_defaults: Default priority=5, max_attempts=3
 """
+
 import uuid
 
 from src.scheduling.schemas import (
     BackgroundTaskCreate,
-    ScheduleType,
     ScheduledJobCreate,
+    ScheduleType,
     TaskStatus,
 )
 

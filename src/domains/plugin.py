@@ -9,15 +9,19 @@ A domain author only needs to:
 The kernel's domain_loader will call these methods at startup to auto-wire
 the domain into every platform layer (events, tools, agents, memory, routing).
 """
+
 from __future__ import annotations
 
 import abc
 from dataclasses import dataclass, field
-from typing import Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter
+if TYPE_CHECKING:
+    from collections.abc import Callable, Coroutine
 
-from src.events.schemas import PlatformEvent
+    from fastapi import APIRouter
+
+    from src.events.schemas import PlatformEvent
 
 
 # ---------------------------------------------------------------------------
@@ -26,32 +30,35 @@ from src.events.schemas import PlatformEvent
 @dataclass
 class ToolDeclaration:
     """A tool the domain provides to the kernel."""
-    tool_id: str                          # e.g. "health.log_meal"
-    name: str                             # Human-readable name
-    description: str                      # Used in LLM tool descriptions
-    handler: Callable                     # Sync or async callable
+
+    tool_id: str  # e.g. "health.log_meal"
+    name: str  # Human-readable name
+    description: str  # Used in LLM tool descriptions
+    handler: Callable  # Sync or async callable
     parameters_schema: dict = field(default_factory=dict)  # JSON Schema for args
-    domain: str = ""                      # Auto-set by loader
+    domain: str = ""  # Auto-set by loader
 
 
 @dataclass
 class AgentDeclaration:
     """An agent the domain provides."""
-    agent_type: str                       # e.g. "health.nutrition_coach"
+
+    agent_type: str  # e.g. "health.nutrition_coach"
     name: str
     description: str
-    system_prompt: str                    # The agent's personality/instructions
-    tools: list[str] = field(default_factory=list)   # Tool IDs this agent can use
-    model_preference: str | None = None   # Override default LLM model
+    system_prompt: str  # The agent's personality/instructions
+    tools: list[str] = field(default_factory=list)  # Tool IDs this agent can use
+    model_preference: str | None = None  # Override default LLM model
     temperature: float = 0.7
     max_tokens: int = 2048
-    domain: str = ""                      # Auto-set by loader
+    domain: str = ""  # Auto-set by loader
 
 
 @dataclass
 class EventHandlerDeclaration:
     """An event the domain wants to subscribe to."""
-    event_pattern: str                    # Exact or wildcard, e.g. "health.*"
+
+    event_pattern: str  # Exact or wildcard, e.g. "health.*"
     handler: Callable[[PlatformEvent], Coroutine[Any, Any, None]]
     description: str = ""
 
@@ -59,18 +66,20 @@ class EventHandlerDeclaration:
 @dataclass
 class MemoryCategoryDeclaration:
     """A memory category the domain uses for structured facts."""
-    category: str                         # e.g. "dietary_preference"
-    description: str                      # What kind of facts go here
+
+    category: str  # e.g. "dietary_preference"
+    description: str  # What kind of facts go here
     example_keys: list[str] = field(default_factory=list)  # e.g. ["diet_type", "calorie_goal"]
 
 
 @dataclass
 class WorkflowDeclaration:
     """A workflow the domain provides."""
-    workflow_id: str                      # e.g. "health.weekly_review"
+
+    workflow_id: str  # e.g. "health.weekly_review"
     name: str
     description: str
-    trigger_type: str                     # "schedule", "event", "manual"
+    trigger_type: str  # "schedule", "event", "manual"
     trigger_config: dict = field(default_factory=dict)
     steps: list[dict] = field(default_factory=list)
 
@@ -148,11 +157,11 @@ class DomainPlugin(abc.ABC):
 
     # ── Lifecycle hooks ───────────────────────────────────────────────
 
-    async def on_startup(self) -> None:
+    async def on_startup(self) -> None:  # noqa: B027
         """Called when the domain is loaded. Use for initialization."""
         pass
 
-    async def on_shutdown(self) -> None:
+    async def on_shutdown(self) -> None:  # noqa: B027
         """Called when the app shuts down. Use for cleanup."""
         pass
 
@@ -194,8 +203,7 @@ class DomainPlugin(abc.ABC):
             for tool_id in agent.tools:
                 if tool_id not in declared_tool_ids:
                     errors.append(
-                        f"Agent '{agent.agent_type}' references tool '{tool_id}' "
-                        f"which is not declared in get_tools()"
+                        f"Agent '{agent.agent_type}' references tool '{tool_id}' which is not declared in get_tools()"
                     )
 
         return errors

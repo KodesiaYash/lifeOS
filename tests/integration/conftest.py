@@ -6,6 +6,7 @@ Integration tests:
   - Mock Redis and LLM calls
   - Test module-to-module data flows through real DB
 """
+
 from unittest.mock import AsyncMock
 
 import pytest

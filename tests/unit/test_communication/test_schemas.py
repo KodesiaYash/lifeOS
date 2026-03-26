@@ -8,9 +8,9 @@ Tests:
 """
 
 from src.communication.schemas import (
-    NormalizedInboundEvent,
-    ContentType,
     ChannelType,
+    ContentType,
+    NormalizedInboundEvent,
 )
 
 

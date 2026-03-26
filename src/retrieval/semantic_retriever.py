@@ -3,6 +3,7 @@ Semantic retriever: pgvector cosine similarity search across memories and knowle
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,15 +40,17 @@ class SemanticRetriever:
                 domain=domain,
             )
             for mem in memories:
-                results.append(RetrievalResult(
-                    id=mem.id,
-                    source="semantic_memory",
-                    content=mem.content,
-                    relevance_score=0.0,  # Will be scored by reranker
-                    domain=mem.source_domain,
-                    created_at=mem.created_at,
-                    metadata={"memory_type": mem.memory_type, "importance": mem.importance},
-                ))
+                results.append(
+                    RetrievalResult(
+                        id=mem.id,
+                        source="semantic_memory",
+                        content=mem.content,
+                        relevance_score=0.0,  # Will be scored by reranker
+                        domain=mem.source_domain,
+                        created_at=mem.created_at,
+                        metadata={"memory_type": mem.memory_type, "importance": mem.importance},
+                    )
+                )
 
         if search_knowledge:
             chunks = await self.chunk_repo.search_by_embedding(
@@ -55,14 +58,16 @@ class SemanticRetriever:
                 limit=max_results,
             )
             for chunk in chunks:
-                results.append(RetrievalResult(
-                    id=chunk.id,
-                    source="knowledge_chunk",
-                    content=chunk.text,
-                    relevance_score=0.0,
-                    created_at=chunk.created_at,
-                    metadata={"document_id": str(chunk.document_id), "chunk_index": chunk.chunk_index},
-                ))
+                results.append(
+                    RetrievalResult(
+                        id=chunk.id,
+                        source="knowledge_chunk",
+                        content=chunk.text,
+                        relevance_score=0.0,
+                        created_at=chunk.created_at,
+                        metadata={"document_id": str(chunk.document_id), "chunk_index": chunk.chunk_index},
+                    )
+                )
 
         logger.debug("semantic_search_complete", results=len(results))
         return results

@@ -2,6 +2,7 @@
 Outbound message dispatch with retry logic.
 Routes messages to the appropriate channel adapter.
 """
+
 import structlog
 
 from src.communication.adapters.base import ChannelAdapter

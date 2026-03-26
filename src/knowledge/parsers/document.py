@@ -2,6 +2,7 @@
 Office document parser stub (DOCX, PPTX, etc.).
 TODO: Implement using python-docx or similar.
 """
+
 import structlog
 
 logger = structlog.get_logger()

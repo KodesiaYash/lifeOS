@@ -1,6 +1,7 @@
 """
 Pydantic schemas for the knowledge store.
 """
+
 import uuid
 from datetime import datetime
 

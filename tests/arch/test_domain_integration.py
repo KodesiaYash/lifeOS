@@ -30,8 +30,10 @@ Tests:
   - test_full_wiring_simulation: Simulate the domain loader wiring all layers
   - test_domain_health_report: Print full integration health report (informational)
 """
+
 import importlib
 import inspect
+from datetime import UTC
 from pathlib import Path
 
 import pytest
@@ -97,36 +99,28 @@ class TestToolsLayer:
         """Every tool must have a callable handler."""
         plugin = _load_plugin(domain)
         for tool in plugin.get_tools():
-            assert callable(tool.handler), (
-                f"Tool {tool.tool_id} handler is not callable: {tool.handler}"
-            )
+            assert callable(tool.handler), f"Tool {tool.tool_id} handler is not callable: {tool.handler}"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_tools_naming_convention(self, domain):
         """Every tool_id must start with 'domain.'."""
         plugin = _load_plugin(domain)
         for tool in plugin.get_tools():
-            assert tool.tool_id.startswith(f"{domain}."), (
-                f"Tool '{tool.tool_id}' must start with '{domain}.'"
-            )
+            assert tool.tool_id.startswith(f"{domain}."), f"Tool '{tool.tool_id}' must start with '{domain}.'"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_tools_have_description(self, domain):
         """Every tool must have a non-empty description (used in LLM tool call)."""
         plugin = _load_plugin(domain)
         for tool in plugin.get_tools():
-            assert len(tool.description) > 10, (
-                f"Tool {tool.tool_id} description too short: '{tool.description}'"
-            )
+            assert len(tool.description) > 10, f"Tool {tool.tool_id} description too short: '{tool.description}'"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_tool_handlers_are_async(self, domain):
         """Tool handlers should be async for non-blocking execution."""
         plugin = _load_plugin(domain)
         for tool in plugin.get_tools():
-            assert inspect.iscoroutinefunction(tool.handler), (
-                f"Tool {tool.tool_id} handler should be async"
-            )
+            assert inspect.iscoroutinefunction(tool.handler), f"Tool {tool.tool_id} handler should be async"
 
 
 # ---------------------------------------------------------------------------
@@ -147,18 +141,14 @@ class TestAgentsLayer:
         """Every agent must have a system prompt (personality/instructions)."""
         plugin = _load_plugin(domain)
         for agent in plugin.get_agents():
-            assert len(agent.system_prompt) > 20, (
-                f"Agent {agent.agent_type} system_prompt too short"
-            )
+            assert len(agent.system_prompt) > 20, f"Agent {agent.agent_type} system_prompt too short"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_agents_naming_convention(self, domain):
         """Every agent_type must start with 'domain.'."""
         plugin = _load_plugin(domain)
         for agent in plugin.get_agents():
-            assert agent.agent_type.startswith(f"{domain}."), (
-                f"Agent '{agent.agent_type}' must start with '{domain}.'"
-            )
+            assert agent.agent_type.startswith(f"{domain}."), f"Agent '{agent.agent_type}' must start with '{domain}.'"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_agents_reference_declared_tools(self, domain):
@@ -181,9 +171,7 @@ class TestAgentsLayer:
         """Every agent should have at least one tool assigned."""
         plugin = _load_plugin(domain)
         for agent in plugin.get_agents():
-            assert len(agent.tools) >= 1, (
-                f"Agent {agent.agent_type} has no tools — it can't do anything useful"
-            )
+            assert len(agent.tools) >= 1, f"Agent {agent.agent_type} has no tools — it can't do anything useful"
 
 
 # ---------------------------------------------------------------------------
@@ -205,9 +193,7 @@ class TestEventsLayer:
         plugin = _load_plugin(domain)
         for h in plugin.get_event_handlers():
             assert callable(h.handler), f"Handler for {h.event_pattern} is not callable"
-            assert inspect.iscoroutinefunction(h.handler), (
-                f"Handler for {h.event_pattern} must be async"
-            )
+            assert inspect.iscoroutinefunction(h.handler), f"Handler for {h.event_pattern} must be async"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_event_patterns_namespaced(self, domain):
@@ -237,18 +223,14 @@ class TestMemoryLayer:
         """Every memory category must have a description."""
         plugin = _load_plugin(domain)
         for cat in plugin.get_memory_categories():
-            assert len(cat.description) > 5, (
-                f"Memory category '{cat.category}' needs a description"
-            )
+            assert len(cat.description) > 5, f"Memory category '{cat.category}' needs a description"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_memory_categories_have_examples(self, domain):
         """Every memory category must have at least 1 example key."""
         plugin = _load_plugin(domain)
         for cat in plugin.get_memory_categories():
-            assert len(cat.example_keys) >= 1, (
-                f"Memory category '{cat.category}' needs at least 1 example_key"
-            )
+            assert len(cat.example_keys) >= 1, f"Memory category '{cat.category}' needs at least 1 example_key"
 
 
 # ---------------------------------------------------------------------------
@@ -265,6 +247,7 @@ class TestRouterLayer:
         assert router is not None, f"{domain} get_router() returned None"
         # Verify it's an actual APIRouter
         from fastapi import APIRouter
+
         assert isinstance(router, APIRouter), (
             f"{domain} get_router() returned {type(router).__name__}, expected APIRouter"
         )
@@ -290,9 +273,7 @@ class TestManifestConsistency:
 
         # Generated must be a superset of (or equal to) static manifest
         missing = static_tools - gen_tools
-        assert not missing, (
-            f"{domain}: manifest.py declares tools {missing} not in plugin.get_tools()"
-        )
+        assert not missing, f"{domain}: manifest.py declares tools {missing} not in plugin.get_tools()"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_manifest_agents_match(self, domain):
@@ -307,9 +288,7 @@ class TestManifestConsistency:
         static_agents = set(static["agents"])
 
         missing = static_agents - gen_agents
-        assert not missing, (
-            f"{domain}: manifest.py declares agents {missing} not in plugin.get_agents()"
-        )
+        assert not missing, f"{domain}: manifest.py declares agents {missing} not in plugin.get_agents()"
 
 
 # ---------------------------------------------------------------------------
@@ -322,21 +301,23 @@ class TestFullWiringSimulation:
     async def test_all_domains_wire_into_tool_registry(self):
         """All domain tools register into a shared ToolRegistry without collision."""
         from src.kernel.tool_registry import ToolRegistry
+
         registry = ToolRegistry()
 
         all_tool_ids = set()
         for domain in DOMAINS:
             plugin = _load_plugin(domain)
             for tool in plugin.get_tools():
-                assert tool.tool_id not in all_tool_ids, (
-                    f"Tool ID collision: {tool.tool_id}"
-                )
+                assert tool.tool_id not in all_tool_ids, f"Tool ID collision: {tool.tool_id}"
                 all_tool_ids.add(tool.tool_id)
                 from src.kernel.tool_registry import ToolDefinition
+
                 registry.register(
                     ToolDefinition(
-                        tool_id=tool.tool_id, name=tool.name,
-                        description=tool.description, domain=plugin.domain_id,
+                        tool_id=tool.tool_id,
+                        name=tool.name,
+                        description=tool.description,
+                        domain=plugin.domain_id,
                         parameters_schema=tool.parameters_schema,
                     ),
                     tool.handler,
@@ -355,7 +336,8 @@ class TestFullWiringSimulation:
     async def test_all_domains_wire_into_agent_registry(self):
         """All domain agents register into a shared AgentRegistry."""
         import uuid
-        from datetime import datetime, timezone
+        from datetime import datetime
+
         from src.agents.registry import AgentRegistry
         from src.agents.schemas import AgentDefinitionRead
 
@@ -365,19 +347,26 @@ class TestFullWiringSimulation:
         for domain in DOMAINS:
             plugin = _load_plugin(domain)
             for agent in plugin.get_agents():
-                assert agent.agent_type not in all_agent_types, (
-                    f"Agent type collision: {agent.agent_type}"
-                )
+                assert agent.agent_type not in all_agent_types, f"Agent type collision: {agent.agent_type}"
                 all_agent_types.add(agent.agent_type)
-                registry.register(AgentDefinitionRead(
-                    id=uuid.uuid4(), agent_type=agent.agent_type,
-                    name=agent.name, description=agent.description,
-                    domain=plugin.domain_id, system_prompt=agent.system_prompt,
-                    model_preference=agent.model_preference,
-                    temperature=agent.temperature, max_tokens=agent.max_tokens,
-                    tools=agent.tools, capabilities={}, active=True, version=1,
-                    created_at=datetime.now(timezone.utc),
-                ))
+                registry.register(
+                    AgentDefinitionRead(
+                        id=uuid.uuid4(),
+                        agent_type=agent.agent_type,
+                        name=agent.name,
+                        description=agent.description,
+                        domain=plugin.domain_id,
+                        system_prompt=agent.system_prompt,
+                        model_preference=agent.model_preference,
+                        temperature=agent.temperature,
+                        max_tokens=agent.max_tokens,
+                        tools=agent.tools,
+                        capabilities={},
+                        active=True,
+                        version=1,
+                        created_at=datetime.now(UTC),
+                    )
+                )
 
         # All agents findable
         for agent_type in all_agent_types:
@@ -402,9 +391,7 @@ class TestFullWiringSimulation:
                 bus.subscribe(h.event_pattern, h.handler)
                 total_handlers += 1
 
-        assert total_handlers >= len(DOMAINS), (
-            f"Expected at least {len(DOMAINS)} handlers, got {total_handlers}"
-        )
+        assert total_handlers >= len(DOMAINS), f"Expected at least {len(DOMAINS)} handlers, got {total_handlers}"
 
     @pytest.mark.asyncio
     async def test_tool_invocation_after_wiring(self):
@@ -417,8 +404,10 @@ class TestFullWiringSimulation:
             for tool in plugin.get_tools():
                 registry.register(
                     ToolDefinition(
-                        tool_id=tool.tool_id, name=tool.name,
-                        description=tool.description, domain=plugin.domain_id,
+                        tool_id=tool.tool_id,
+                        name=tool.name,
+                        description=tool.description,
+                        domain=plugin.domain_id,
                     ),
                     tool.handler,
                 )
@@ -428,9 +417,7 @@ class TestFullWiringSimulation:
             plugin = _load_plugin(domain)
             first_tool = plugin.get_tools()[0]
             result = await registry.invoke(first_tool.tool_id)
-            assert result.success is True, (
-                f"Failed to invoke {first_tool.tool_id}: {result.error}"
-            )
+            assert result.success is True, f"Failed to invoke {first_tool.tool_id}: {result.error}"
 
 
 # ---------------------------------------------------------------------------
@@ -472,7 +459,9 @@ class TestDomainHealthReport:
         total_agents = sum(len(_load_plugin(d).get_agents()) for d in DOMAINS)
         total_events = sum(len(_load_plugin(d).get_event_handlers()) for d in DOMAINS)
         total_memory = sum(len(_load_plugin(d).get_memory_categories()) for d in DOMAINS)
-        print(f"TOTAL: {len(DOMAINS)} domains, {total_tools} tools, "
-              f"{total_agents} agents, {total_events} event handlers, "
-              f"{total_memory} memory categories")
+        print(
+            f"TOTAL: {len(DOMAINS)} domains, {total_tools} tools, "
+            f"{total_agents} agents, {total_events} event handlers, "
+            f"{total_memory} memory categories"
+        )
         print("=" * 80)

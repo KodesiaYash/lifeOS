@@ -2,6 +2,7 @@
 Health & Fitness domain plugin.
 Tracks nutrition, exercise, sleep, vitals, and wellness metrics.
 """
+
 from src.domains.plugin import (
     AgentDeclaration,
     DomainPlugin,
@@ -224,6 +225,7 @@ class HealthPlugin(DomainPlugin):
 
     def get_router(self):
         from src.domains.health.router import router
+
         return router
 
 

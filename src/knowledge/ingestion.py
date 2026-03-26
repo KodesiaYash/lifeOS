@@ -4,6 +4,7 @@ Coordinates: fetch → parse → deduplicate → chunk → embed → tag → sto
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import hashlib
 
 import structlog
@@ -103,13 +104,14 @@ class IngestionPipeline:
                     token_count=estimate_tokens(text),
                     embedding=emb,
                 )
-                for i, (text, emb) in enumerate(zip(chunks_text, embeddings))
+                for i, (text, emb) in enumerate(zip(chunks_text, embeddings, strict=False))
             ]
             await self.chunk_repo.create_batch(chunks)
             doc.chunk_count = len(chunks)
 
             # 7. Update status
             from src.shared.time import utc_now
+
             doc.processed_at = utc_now()
             doc.status = "completed"
             await self.session.flush()

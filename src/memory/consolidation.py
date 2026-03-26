@@ -4,12 +4,14 @@ Converts ephemeral session data into long-term memories.
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import uuid
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.memory.models import ConversationSummary, SemanticMemory as SemanticMemoryModel
+from src.memory.models import ConversationSummary
+from src.memory.models import SemanticMemory as SemanticMemoryModel
 from src.memory.repository import ConversationSummaryRepository, SemanticMemoryRepository
 from src.memory.short_term import ShortTermMemory
 

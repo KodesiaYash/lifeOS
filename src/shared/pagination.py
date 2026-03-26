@@ -1,6 +1,7 @@
 """
 Pagination utilities for list endpoints.
 """
+
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
@@ -11,6 +12,7 @@ T = TypeVar("T")
 
 class PaginationParams(BaseModel):
     """Query parameters for paginated list endpoints."""
+
     offset: int = Field(default=0, ge=0, description="Number of items to skip")
     limit: int = Field(default=50, ge=1, le=200, description="Max items to return")
 
@@ -18,6 +20,7 @@ class PaginationParams(BaseModel):
 @dataclass
 class PaginatedResult(Generic[T]):
     """Generic paginated result container."""
+
     items: list[T]
     total: int
     offset: int

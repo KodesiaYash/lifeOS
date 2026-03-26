@@ -9,6 +9,7 @@ Tests:
   - test_memory_packet_structure: MemoryPacket contains all four sections
   - test_memory_packet_token_count: total_tokens is preserved
 """
+
 from src.memory.schemas import MemoryFactCreate, MemoryPacket, SemanticMemoryCreate
 
 

@@ -3,9 +3,9 @@ SQLAlchemy models for the knowledge store.
 
 Single-user mode: No tenant_id or user_id references.
 """
+
 import uuid
 from datetime import datetime
-
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, text
@@ -17,6 +17,7 @@ from src.shared.base_model import TimestampedBase
 
 class KnowledgeDocument(TimestampedBase):
     """Metadata for ingested knowledge documents."""
+
     __tablename__ = "know_documents"
 
     source_type: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -46,9 +47,12 @@ class KnowledgeDocument(TimestampedBase):
 
 class KnowledgeChunk(TimestampedBase):
     """Text chunks with embeddings for vector search."""
+
     __tablename__ = "know_chunks"
 
-    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("know_documents.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("know_documents.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     token_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -58,9 +62,12 @@ class KnowledgeChunk(TimestampedBase):
 
 class KnowledgeRelation(TimestampedBase):
     """Entity and topic relationships extracted from knowledge."""
+
     __tablename__ = "know_relations"
 
-    document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("know_documents.id", ondelete="CASCADE"), nullable=True)
+    document_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("know_documents.id", ondelete="CASCADE"), nullable=True
+    )
     entity_name: Mapped[str] = mapped_column(String(500), nullable=False)
     entity_type: Mapped[str] = mapped_column(String(100), nullable=False)
     related_to: Mapped[str | None] = mapped_column(String(500), nullable=True)

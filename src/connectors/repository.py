@@ -1,6 +1,7 @@
 """
 Database access layer for connector entities.
 """
+
 import uuid
 
 from sqlalchemy import select, update
@@ -55,14 +56,10 @@ class ConnectorInstanceRepository:
         )
         return list(result.scalars().all())
 
-    async def update_status(
-        self, instance_id: uuid.UUID, status: str, **kwargs: object
-    ) -> None:
+    async def update_status(self, instance_id: uuid.UUID, status: str, **kwargs: object) -> None:
         values = {"status": status, **kwargs}
         await self.session.execute(
-            update(ConnectorInstance)
-            .where(ConnectorInstance.id == instance_id)
-            .values(**values)
+            update(ConnectorInstance).where(ConnectorInstance.id == instance_id).values(**values)
         )
 
 
@@ -75,13 +72,8 @@ class SyncLogRepository:
         await self.session.flush()
         return log
 
-    async def list_by_instance(
-        self, instance_id: uuid.UUID, limit: int = 20
-    ) -> list[SyncLog]:
+    async def list_by_instance(self, instance_id: uuid.UUID, limit: int = 20) -> list[SyncLog]:
         result = await self.session.execute(
-            select(SyncLog)
-            .where(SyncLog.instance_id == instance_id)
-            .order_by(SyncLog.started_at.desc())
-            .limit(limit)
+            select(SyncLog).where(SyncLog.instance_id == instance_id).order_by(SyncLog.started_at.desc()).limit(limit)
         )
         return list(result.scalars().all())

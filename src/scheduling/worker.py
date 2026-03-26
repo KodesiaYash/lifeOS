@@ -3,6 +3,7 @@ arq worker for async background task processing.
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import structlog
 from arq import create_pool
 from arq.connections import ArqRedis, RedisSettings
@@ -42,6 +43,7 @@ async def enqueue_task(
 # These are the actual handler functions that arq workers call.
 # New handlers should be registered here and in WorkerSettings.functions.
 
+
 async def process_knowledge_ingestion(ctx: dict, document_id: str) -> dict:
     """Background task: process a knowledge document through the ingestion pipeline."""
     logger.info("bg_knowledge_ingestion", document_id=document_id)
@@ -65,6 +67,7 @@ async def process_connector_sync(ctx: dict, connector_id: str) -> dict:
 
 class WorkerSettings:
     """arq worker configuration."""
+
     functions = [
         process_knowledge_ingestion,
         process_memory_consolidation,

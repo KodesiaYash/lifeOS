@@ -6,6 +6,7 @@ Unit tests must:
   - Use mocks/fakes for all I/O boundaries
   - Run in < 1 second total
 """
+
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -42,11 +43,13 @@ def mock_llm_client() -> MagicMock:
     client = AsyncMock()
     client.complete = AsyncMock(return_value="Mocked LLM response")
     client.structured_output = AsyncMock(return_value={"intent": "test", "confidence": 0.9})
-    client.complete_with_tools = AsyncMock(return_value={
-        "content": "Mocked tool response",
-        "tool_calls": [],
-        "usage": {"prompt_tokens": 100, "completion_tokens": 50},
-    })
+    client.complete_with_tools = AsyncMock(
+        return_value={
+            "content": "Mocked tool response",
+            "tool_calls": [],
+            "usage": {"prompt_tokens": 100, "completion_tokens": 50},
+        }
+    )
     return client
 
 

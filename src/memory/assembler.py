@@ -4,6 +4,7 @@ and assemble into a bounded MemoryPacket for LLM calls.
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,7 +56,8 @@ class MemoryAssembler:
         session_state = await self.short_term.get_session(session_id)
         if session_state:
             packet.session_context = {
-                k: v for k, v in session_state.items()
+                k: v
+                for k, v in session_state.items()
                 if k != "message_history"  # Message history is handled separately
             }
             remaining -= 200  # Estimate for session context

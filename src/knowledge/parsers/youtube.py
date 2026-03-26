@@ -2,6 +2,7 @@
 YouTube transcript parser stub.
 TODO: Implement using youtube-transcript-api.
 """
+
 import structlog
 
 logger = structlog.get_logger()

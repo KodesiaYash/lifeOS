@@ -12,24 +12,26 @@ Called once at application startup. For each domain plugin:
   8. Calls the plugin's on_startup() lifecycle hook
   9. Logs the full wiring report
 """
+
 from __future__ import annotations
 
 import importlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import structlog
 
-from src.agents.registry import AgentRegistry
 from src.agents.schemas import AgentDefinitionRead
 from src.domains.plugin import DomainPlugin
-from src.events.bus import EventBus
 from src.kernel.tool_registry import ToolDefinition, ToolRegistry
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
+
+    from src.agents.registry import AgentRegistry
+    from src.events.bus import EventBus
 
 logger = structlog.get_logger()
 
@@ -81,8 +83,9 @@ def discover_domain_plugins() -> list[DomainPlugin]:
         if hasattr(mod, "plugin") and isinstance(mod.plugin, DomainPlugin):
             plugins.append(mod.plugin)
         else:
-            logger.debug("domain_no_plugin", domain=domain_dir.name,
-                         hint="Add `plugin = MyDomainPlugin()` to __init__.py")
+            logger.debug(
+                "domain_no_plugin", domain=domain_dir.name, hint="Add `plugin = MyDomainPlugin()` to __init__.py"
+            )
 
     return plugins
 
@@ -121,7 +124,7 @@ def _register_agents(plugin: DomainPlugin, agent_registry: AgentRegistry) -> int
             capabilities={},
             active=True,
             version=1,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         agent_registry.register(defn)
         count += 1
@@ -141,13 +144,12 @@ def _register_memory_categories(plugin: DomainPlugin) -> int:
     """Register memory categories. Returns count registered."""
     cats = plugin.get_memory_categories()
     _memory_categories[plugin.domain_id] = [
-        {"category": c.category, "description": c.description, "example_keys": c.example_keys}
-        for c in cats
+        {"category": c.category, "description": c.description, "example_keys": c.example_keys} for c in cats
     ]
     return len(cats)
 
 
-def _mount_router(plugin: DomainPlugin, app: "FastAPI") -> bool:
+def _mount_router(plugin: DomainPlugin, app: FastAPI) -> bool:
     """Mount the domain's router if provided. Returns True if mounted."""
     router = plugin.get_router()
     if router is not None:
@@ -158,7 +160,7 @@ def _mount_router(plugin: DomainPlugin, app: "FastAPI") -> bool:
 
 
 async def load_domain_plugins(
-    app: "FastAPI",
+    app: FastAPI,
     tool_registry: ToolRegistry,
     agent_registry: AgentRegistry,
     event_bus: EventBus,

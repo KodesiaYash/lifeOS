@@ -5,11 +5,11 @@ Single-user mode tests:
   - test_settings_read_has_required_fields: Read schema has all required fields
   - test_domain_registry_update_optional: Update fields are optional
 """
+
 import uuid
 from datetime import datetime
 
-
-from src.core.schemas import SettingsRead, SettingsUpdate, DomainRegistryUpdate
+from src.core.schemas import DomainRegistryUpdate, SettingsRead, SettingsUpdate
 
 
 class TestSettingsUpdate:

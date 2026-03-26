@@ -3,6 +3,7 @@ Database access layer for events.
 
 Single-user mode: No tenant_id or user_id filtering.
 """
+
 import uuid
 
 from sqlalchemy import select
@@ -58,8 +59,6 @@ class EventRepository:
     async def get_by_correlation_id(self, correlation_id: uuid.UUID) -> list[Event]:
         """Get all events in a correlation chain."""
         result = await self.session.execute(
-            select(Event)
-            .where(Event.correlation_id == correlation_id)
-            .order_by(Event.timestamp.asc())
+            select(Event).where(Event.correlation_id == correlation_id).order_by(Event.timestamp.asc())
         )
         return list(result.scalars().all())

@@ -3,6 +3,7 @@ SQLAlchemy models for the scheduling system.
 
 Single-user mode: No tenant_id or user_id references.
 """
+
 import uuid
 from datetime import datetime
 
@@ -15,6 +16,7 @@ from src.shared.base_model import TimestampedBase
 
 class ScheduledJob(TimestampedBase):
     """Cron/interval scheduled jobs via APScheduler."""
+
     __tablename__ = "sched_jobs"
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -35,6 +37,7 @@ class ScheduledJob(TimestampedBase):
 
 class BackgroundTask(TimestampedBase):
     """Async background task records (arq jobs)."""
+
     __tablename__ = "sched_background_tasks"
 
     task_type: Mapped[str] = mapped_column(String(255), nullable=False, index=True)

@@ -10,8 +10,9 @@ Tests:
   - test_unregister: Removes agent from registry
   - test_overwrite_replaces: Re-registering same type overwrites
 """
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.agents.registry import AgentRegistry
 from src.agents.schemas import AgentDefinitionRead
@@ -32,7 +33,7 @@ def _defn(agent_type: str, domain: str | None = None) -> AgentDefinitionRead:
         capabilities={},
         active=True,
         version=1,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
 

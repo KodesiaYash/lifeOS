@@ -8,6 +8,7 @@ Tests:
   - test_workflow_create_minimal: Minimum valid workflow definition
   - test_workflow_step_config: Step config is preserved as dict
 """
+
 from src.orchestration.schemas import StepType, TriggerType, WorkflowStatus
 
 

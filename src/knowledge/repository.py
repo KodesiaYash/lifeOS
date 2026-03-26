@@ -3,6 +3,7 @@ Database access layer for knowledge entities.
 
 Single-user mode: No tenant_id or user_id filtering.
 """
+
 import uuid
 
 from sqlalchemy import select, update
@@ -32,20 +33,14 @@ class KnowledgeDocumentRepository:
         return result.scalar_one_or_none()
 
     async def get_by_url(self, url: str) -> KnowledgeDocument | None:
-        result = await self.session.execute(
-            select(KnowledgeDocument).where(KnowledgeDocument.url == url)
-        )
+        result = await self.session.execute(select(KnowledgeDocument).where(KnowledgeDocument.url == url))
         return result.scalar_one_or_none()
 
-    async def update_status(
-        self, doc_id: uuid.UUID, status: str, error_message: str | None = None
-    ) -> None:
+    async def update_status(self, doc_id: uuid.UUID, status: str, error_message: str | None = None) -> None:
         values: dict = {"status": status}
         if error_message is not None:
             values["error_message"] = error_message
-        await self.session.execute(
-            update(KnowledgeDocument).where(KnowledgeDocument.id == doc_id).values(**values)
-        )
+        await self.session.execute(update(KnowledgeDocument).where(KnowledgeDocument.id == doc_id).values(**values))
 
     async def list_all(
         self,
@@ -91,9 +86,7 @@ class KnowledgeChunkRepository:
 
     async def list_by_document(self, document_id: uuid.UUID) -> list[KnowledgeChunk]:
         result = await self.session.execute(
-            select(KnowledgeChunk)
-            .where(KnowledgeChunk.document_id == document_id)
-            .order_by(KnowledgeChunk.chunk_index)
+            select(KnowledgeChunk).where(KnowledgeChunk.document_id == document_id).order_by(KnowledgeChunk.chunk_index)
         )
         return list(result.scalars().all())
 

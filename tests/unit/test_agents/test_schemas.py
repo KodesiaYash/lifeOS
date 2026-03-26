@@ -8,6 +8,7 @@ Tests:
   - test_invoke_response_completed: Completed response has output and metrics
   - test_invoke_response_failed: Failed response has error text
 """
+
 import uuid
 
 from src.agents.schemas import AgentInvokeRequest, AgentInvokeResponse

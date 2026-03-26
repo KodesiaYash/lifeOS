@@ -10,8 +10,9 @@ Tests:
   - test_unknown_intent_fallback: Ambiguous message → graceful fallback response
   - test_context_injection: User facts are injected into LLM context
 """
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -52,30 +53,34 @@ def _setup_registries():
     )
 
     # Register a test agent
-    agents.register(AgentDefinitionRead(
-        id=uuid.uuid4(),
-        agent_type="health.nutrition_coach",
-        name="Nutrition Coach",
-        description="Logs meals and provides nutrition advice",
-        domain="health",
-        system_prompt="You are a nutrition expert. Log meals and provide calorie summaries.",
-        model_preference="gpt-4o-mini",
-        temperature=0.0,
-        max_tokens=1024,
-        tools=["health.log_meal"],
-        capabilities={},
-        active=True,
-        version=1,
-        created_at=datetime.now(timezone.utc),
-    ))
+    agents.register(
+        AgentDefinitionRead(
+            id=uuid.uuid4(),
+            agent_type="health.nutrition_coach",
+            name="Nutrition Coach",
+            description="Logs meals and provides nutrition advice",
+            domain="health",
+            system_prompt="You are a nutrition expert. Log meals and provide calorie summaries.",
+            model_preference="gpt-4o-mini",
+            temperature=0.0,
+            max_tokens=1024,
+            tools=["health.log_meal"],
+            capabilities={},
+            active=True,
+            version=1,
+            created_at=datetime.now(UTC),
+        )
+    )
 
     # Register intent classification prompt
-    prompts.register(PromptTemplate(
-        prompt_id="intent.classify",
-        version=1,
-        template="Classify the user intent from: {domains}\nMessage: {message}",
-        input_variables=["domains", "message"],
-    ))
+    prompts.register(
+        PromptTemplate(
+            prompt_id="intent.classify",
+            version=1,
+            template="Classify the user intent from: {domains}\nMessage: {message}",
+            input_variables=["domains", "message"],
+        )
+    )
 
     return tools, agents, prompts
 

@@ -1,10 +1,11 @@
 """
 FastAPI application entry point.
 """
-import structlog
-from contextlib import asynccontextmanager
-from collections.abc import AsyncGenerator
 
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application startup and shutdown lifecycle."""
     # --- Startup ---
     import logging
+
     log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.DEBUG)
     structlog.configure(
         processors=[
@@ -35,7 +37,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # --- Load domain plugins (auto-wires tools, agents, events, memory, routers) ---
     from src.agents.registry import agent_registry
-    from src.domains.loader import load_domain_plugins, get_loaded_plugins
+    from src.domains.loader import get_loaded_plugins, load_domain_plugins
     from src.events.bus import event_bus
     from src.kernel.tool_registry import tool_registry
 
@@ -73,6 +75,7 @@ def create_app() -> FastAPI:
 
     # Request context middleware for logging
     from src.core.middleware import RequestContextMiddleware
+
     application.add_middleware(RequestContextMiddleware)
 
     # CORS
@@ -97,8 +100,8 @@ def create_app() -> FastAPI:
 
 def _register_routers(application: FastAPI) -> None:
     """Register all API routers."""
-    from src.core.router import router as core_router
     from src.communication.router import router as communication_router
+    from src.core.router import router as core_router
     from src.events.router import router as events_router
 
     application.include_router(core_router, prefix="/api/v1/core", tags=["core"])

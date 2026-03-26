@@ -12,6 +12,7 @@ Tests:
   - test_handler_receives_event_data: Handler receives full PlatformEvent with payload
   - test_handler_error_does_not_block_others: One failing handler does not prevent others from running
 """
+
 import uuid
 
 import pytest

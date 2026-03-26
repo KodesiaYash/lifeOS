@@ -1,6 +1,7 @@
 """
 Pydantic schemas for the memory fabric.
 """
+
 import uuid
 from datetime import datetime
 
@@ -61,6 +62,7 @@ class MemoryPacket(BaseModel):
     Assembled memory context for an LLM call.
     Contains relevant memories from all layers, within a token budget.
     """
+
     user_facts: list[MemoryFactRead] = Field(default_factory=list)
     semantic_memories: list[SemanticMemoryRead] = Field(default_factory=list)
     recent_summaries: list[str] = Field(default_factory=list)

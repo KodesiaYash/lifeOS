@@ -14,6 +14,7 @@ Tests:
   - test_every_domain_has_requirements: Each domain has a requirements file
   - test_manifest_tools_match_requirement_tools: Tools in manifest align with requirement acceptance criteria
 """
+
 import importlib
 from pathlib import Path
 
@@ -63,35 +64,25 @@ class TestDomainManifests:
         manifest = mod.MANIFEST
 
         for tool in manifest.get("tools", []):
-            assert tool.startswith(f"{domain}."), (
-                f"Tool '{tool}' in {domain} must start with '{domain}.'"
-            )
+            assert tool.startswith(f"{domain}."), f"Tool '{tool}' in {domain} must start with '{domain}.'"
 
         for agent in manifest.get("agents", []):
-            assert agent.startswith(f"{domain}."), (
-                f"Agent '{agent}' in {domain} must start with '{domain}.'"
-            )
+            assert agent.startswith(f"{domain}."), f"Agent '{agent}' in {domain} must start with '{domain}.'"
 
         for event in manifest.get("event_types", []):
-            assert event.startswith(f"{domain}."), (
-                f"Event '{event}' in {domain} must start with '{domain}.'"
-            )
+            assert event.startswith(f"{domain}."), f"Event '{event}' in {domain} must start with '{domain}.'"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_manifest_has_at_least_one_tool(self, domain):
         """Every domain must declare at least one tool."""
         mod = importlib.import_module(f"src.domains.{domain}.manifest")
-        assert len(mod.MANIFEST.get("tools", [])) >= 1, (
-            f"{domain} has no tools declared"
-        )
+        assert len(mod.MANIFEST.get("tools", [])) >= 1, f"{domain} has no tools declared"
 
     @pytest.mark.parametrize("domain", DOMAINS)
     def test_manifest_has_at_least_one_agent(self, domain):
         """Every domain must declare at least one agent."""
         mod = importlib.import_module(f"src.domains.{domain}.manifest")
-        assert len(mod.MANIFEST.get("agents", [])) >= 1, (
-            f"{domain} has no agents declared"
-        )
+        assert len(mod.MANIFEST.get("agents", [])) >= 1, f"{domain} has no agents declared"
 
 
 class TestDomainRequirements:

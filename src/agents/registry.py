@@ -2,6 +2,7 @@
 In-memory agent registry for fast lookup of agent definitions.
 Complements the database-backed AgentDefinitionRepository.
 """
+
 import structlog
 
 from src.agents.schemas import AgentDefinitionRead

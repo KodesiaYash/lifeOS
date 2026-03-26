@@ -1,6 +1,7 @@
 """
 AES-256 encryption/decryption helpers for sensitive data (connector credentials, etc.).
 """
+
 import base64
 import os
 

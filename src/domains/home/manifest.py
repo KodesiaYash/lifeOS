@@ -1,6 +1,7 @@
 """
 Home & Environment domain manifest — declares tools, agents, events, and workflows.
 """
+
 MANIFEST = {
     "domain_id": "home",
     "name": "Home & Environment",

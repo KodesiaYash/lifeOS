@@ -2,6 +2,7 @@
 LLM-based tagging and classification for knowledge documents.
 TODO: Implement actual LLM calls for auto-tagging.
 """
+
 import structlog
 
 logger = structlog.get_logger()

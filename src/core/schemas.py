@@ -3,13 +3,14 @@ Pydantic schemas for core entities: request/response models.
 
 Single-user mode: Only Settings and DomainRegistry schemas.
 """
+
 import uuid
 from datetime import datetime
 
 from pydantic import BaseModel
 
-
 # --- Settings ---
+
 
 class SettingsRead(BaseModel):
     id: uuid.UUID
@@ -31,6 +32,7 @@ class SettingsUpdate(BaseModel):
 
 
 # --- DomainRegistry ---
+
 
 class DomainRegistryRead(BaseModel):
     id: uuid.UUID

@@ -1,6 +1,7 @@
 """
 Pydantic schemas for the retrieval layer.
 """
+
 import uuid
 from datetime import datetime
 from enum import StrEnum
@@ -25,6 +26,7 @@ class TimeRange(BaseModel):
 
 class RetrievalRequest(BaseModel):
     """Request for retrieving relevant context from all sources."""
+
     query: str
     query_embedding: list[float] | None = None
 
@@ -48,8 +50,9 @@ class RetrievalRequest(BaseModel):
 
 class RetrievalResult(BaseModel):
     """A single retrieved item with metadata."""
+
     id: uuid.UUID
-    source: str              # 'memory_fact', 'semantic_memory', 'knowledge_chunk', 'event'
+    source: str  # 'memory_fact', 'semantic_memory', 'knowledge_chunk', 'event'
     content: str
     relevance_score: float
     metadata: dict = Field(default_factory=dict)
@@ -62,6 +65,7 @@ class RetrievalResult(BaseModel):
 
 class RetrievalResponse(BaseModel):
     """Full response from a retrieval operation."""
+
     results: list[RetrievalResult] = Field(default_factory=list)
     total_found: int = 0
     strategy_used: RetrievalStrategy = RetrievalStrategy.HYBRID

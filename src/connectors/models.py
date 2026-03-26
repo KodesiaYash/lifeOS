@@ -3,6 +3,7 @@ SQLAlchemy models for external connectors.
 
 Single-user mode: No tenant_id or user_id references.
 """
+
 import uuid
 from datetime import datetime
 
@@ -15,6 +16,7 @@ from src.shared.base_model import TimestampedBase
 
 class ConnectorDefinition(TimestampedBase):
     """Registered external service connector types."""
+
     __tablename__ = "conn_definitions"
 
     connector_type: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
@@ -29,6 +31,7 @@ class ConnectorDefinition(TimestampedBase):
 
 class ConnectorInstance(TimestampedBase):
     """Installed connector instances with credentials."""
+
     __tablename__ = "conn_instances"
 
     connector_type: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -44,9 +47,12 @@ class ConnectorInstance(TimestampedBase):
 
 class SyncLog(TimestampedBase):
     """Log of connector sync operations."""
+
     __tablename__ = "conn_sync_logs"
 
-    instance_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("conn_instances.id"), nullable=False, index=True)
+    instance_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("conn_instances.id"), nullable=False, index=True
+    )
     sync_type: Mapped[str] = mapped_column(String(50), nullable=False)  # 'full', 'incremental', 'webhook'
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     records_fetched: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

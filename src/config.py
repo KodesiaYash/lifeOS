@@ -2,6 +2,7 @@
 Application configuration via Pydantic Settings.
 All config is loaded from environment variables or .env file.
 """
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

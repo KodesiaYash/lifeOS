@@ -6,6 +6,7 @@ Tests:
   - test_paginated_result_has_more: has_more property works
   - test_paginated_result_empty: 0 items, 0 total, still valid
 """
+
 from src.shared.pagination import PaginatedResult, PaginationParams
 
 

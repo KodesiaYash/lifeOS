@@ -4,8 +4,9 @@ Supports LLM calls, tool calls, conditions, parallel steps, and event emission.
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -112,9 +113,9 @@ class WorkflowEngine:
             step_exec = await self.steps.create(step_exec)
 
             try:
-                start = datetime.now(timezone.utc)
+                start = datetime.now(UTC)
                 result = await self._execute_step(step_type, step_config, execution)
-                duration = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+                duration = int((datetime.now(UTC) - start).total_seconds() * 1000)
 
                 # Update step execution
                 step_exec.status = "completed"
@@ -142,7 +143,8 @@ class WorkflowEngine:
                 await self.session.flush()
 
                 await self.executions.update_status(
-                    execution.id, "failed",
+                    execution.id,
+                    "failed",
                     error_message=str(e),
                     completed_at=utc_now(),
                 )
@@ -151,15 +153,14 @@ class WorkflowEngine:
 
         # Workflow completed
         await self.executions.update_status(
-            execution.id, "completed",
+            execution.id,
+            "completed",
             result=execution.context,
             completed_at=utc_now(),
         )
         logger.info("workflow_completed", execution_id=str(execution.id))
 
-    async def _execute_step(
-        self, step_type: str, config: dict, execution: WorkflowExecution
-    ) -> dict:
+    async def _execute_step(self, step_type: str, config: dict, execution: WorkflowExecution) -> dict:
         """Execute a single workflow step based on its type."""
         if step_type == "llm_call":
             return await self._step_llm_call(config, execution)

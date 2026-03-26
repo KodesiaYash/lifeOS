@@ -10,6 +10,7 @@ Tests:
   - test_correlation_id_propagates: correlation_id survives from publish to handler
   - test_handler_receives_full_payload: Complex nested payload is intact in handler
 """
+
 import uuid
 
 import pytest

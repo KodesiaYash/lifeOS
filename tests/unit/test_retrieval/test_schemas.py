@@ -8,6 +8,7 @@ Tests:
   - test_result_optional_domain: Domain is optional
   - test_strategy_enum_values: All expected strategies exist
 """
+
 import uuid
 
 from src.retrieval.schemas import RetrievalRequest, RetrievalResult, RetrievalStrategy

@@ -10,8 +10,9 @@ Tests:
   - test_tool_invoke_and_agent_reference: Tool invocation works for agent-listed tool IDs
   - test_unregistered_tool_graceful_fail: Agent referencing missing tool gets error result
 """
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -35,7 +36,7 @@ def _agent(agent_type: str, tools: list[str], domain: str = "health") -> AgentDe
         capabilities={},
         active=True,
         version=1,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
 

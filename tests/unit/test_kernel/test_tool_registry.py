@@ -13,6 +13,7 @@ Tests:
   - test_get_openai_tools_format: Export matches OpenAI function-calling schema
   - test_get_openai_tools_domain_filter: Domain filter applies to export
 """
+
 import pytest
 
 from src.kernel.tool_registry import ToolDefinition, ToolRegistry
@@ -70,6 +71,7 @@ class TestToolRegistry:
     @pytest.mark.asyncio
     async def test_invoke_async_handler(self):
         """Async handler is awaited and returns ToolResult."""
+
         async def add_one(x):
             return x + 1
 
@@ -91,6 +93,7 @@ class TestToolRegistry:
     @pytest.mark.asyncio
     async def test_invoke_handler_exception(self):
         """Handler that raises returns error ToolResult."""
+
         def bad_handler():
             raise ValueError("boom")
 
@@ -106,7 +109,9 @@ class TestToolRegistry:
         """Export matches OpenAI function-calling schema."""
         self.registry.register(
             ToolDefinition(
-                tool_id="test.fn", name="Test Fn", description="Does testing",
+                tool_id="test.fn",
+                name="Test Fn",
+                description="Does testing",
                 parameters_schema={"type": "object", "properties": {"x": {"type": "integer"}}},
             ),
             lambda x: x,

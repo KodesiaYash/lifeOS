@@ -12,6 +12,7 @@ Tests:
   - test_list_all: Lists all registered prompt IDs
   - test_overwrite_same_version: Re-registering same version overwrites
 """
+
 from src.kernel.prompt_registry import PromptRegistry, PromptTemplate
 
 
@@ -41,34 +42,49 @@ class TestPromptRegistry:
     def test_get_latest_version(self):
         """When multiple versions exist, get() returns the latest."""
         for v in [1, 2, 3]:
-            self.registry.register(PromptTemplate(
-                prompt_id="test.versioned", version=v, template=f"V{v}",
-            ))
+            self.registry.register(
+                PromptTemplate(
+                    prompt_id="test.versioned",
+                    version=v,
+                    template=f"V{v}",
+                )
+            )
         result = self.registry.get("test.versioned")
         assert result.version == 3
 
     def test_get_specific_version(self):
         """Can request a specific older version by number."""
         for v in [1, 2]:
-            self.registry.register(PromptTemplate(
-                prompt_id="test.specific", version=v, template=f"V{v}",
-            ))
+            self.registry.register(
+                PromptTemplate(
+                    prompt_id="test.specific",
+                    version=v,
+                    template=f"V{v}",
+                )
+            )
         result = self.registry.get("test.specific", version=1)
         assert result.version == 1
         assert "V1" in result.template
 
     def test_render_substitution(self):
         """Variables in {braces} are replaced with provided values."""
-        self.registry.register(PromptTemplate(
-            prompt_id="test.render", template="Hello {name}!", input_variables=["name"],
-        ))
+        self.registry.register(
+            PromptTemplate(
+                prompt_id="test.render",
+                template="Hello {name}!",
+                input_variables=["name"],
+            )
+        )
         assert self.registry.render("test.render", name="Alice") == "Hello Alice!"
 
     def test_render_missing_variable(self):
         """Missing variable causes render to return None (not crash)."""
-        self.registry.register(PromptTemplate(
-            prompt_id="test.missing", template="Hello {name}!",
-        ))
+        self.registry.register(
+            PromptTemplate(
+                prompt_id="test.missing",
+                template="Hello {name}!",
+            )
+        )
         result = self.registry.render("test.missing")
         assert result is None
 
@@ -85,11 +101,19 @@ class TestPromptRegistry:
 
     def test_overwrite_same_version(self):
         """Re-registering same ID + version overwrites the template."""
-        self.registry.register(PromptTemplate(
-            prompt_id="test.ow", version=1, template="Old",
-        ))
-        self.registry.register(PromptTemplate(
-            prompt_id="test.ow", version=1, template="New",
-        ))
+        self.registry.register(
+            PromptTemplate(
+                prompt_id="test.ow",
+                version=1,
+                template="Old",
+            )
+        )
+        self.registry.register(
+            PromptTemplate(
+                prompt_id="test.ow",
+                version=1,
+                template="New",
+            )
+        )
         result = self.registry.get("test.ow")
         assert "New" in result.template

@@ -3,6 +3,7 @@ SQLAlchemy models for the communication layer.
 
 Single-user mode: No tenant_id or user_id references.
 """
+
 import uuid
 from datetime import datetime
 
@@ -16,7 +17,9 @@ from src.shared.base_model import Base, TimestampedBase
 class Channel(Base):
     __tablename__ = "comm_channels"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
+    )
     type: Mapped[str] = mapped_column(String(50), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     config: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
@@ -39,18 +42,26 @@ class ChannelAccount(TimestampedBase):
 class ChannelIdentity(TimestampedBase):
     __tablename__ = "comm_channel_identities"
 
-    channel_account_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_channel_accounts.id"), nullable=False, index=True)
+    channel_account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("comm_channel_accounts.id"), nullable=False, index=True
+    )
     external_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
-    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
-    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    first_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
+    )
 
 
 class Conversation(TimestampedBase):
     __tablename__ = "comm_conversations"
 
-    channel_identity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_channel_identities.id"), nullable=False, index=True)
+    channel_identity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("comm_channel_identities.id"), nullable=False, index=True
+    )
     channel_type: Mapped[str] = mapped_column(String(50), nullable=False)
     external_chat_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
@@ -64,7 +75,9 @@ class Conversation(TimestampedBase):
 class Message(TimestampedBase):
     __tablename__ = "comm_messages"
 
-    conversation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_conversations.id"), nullable=False, index=True)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("comm_conversations.id"), nullable=False, index=True
+    )
     direction: Mapped[str] = mapped_column(String(10), nullable=False)
     content_type: Mapped[str] = mapped_column(String(20), nullable=False, server_default="text")
     body: Mapped[str | None] = mapped_column(Text, nullable=True)

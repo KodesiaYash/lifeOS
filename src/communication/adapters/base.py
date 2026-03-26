@@ -1,6 +1,7 @@
 """
 Abstract base class for channel adapters.
 """
+
 from abc import ABC, abstractmethod
 
 from src.communication.schemas import DeliveryReceipt, NormalizedInboundEvent, OutboundMessage

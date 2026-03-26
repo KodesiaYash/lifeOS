@@ -8,10 +8,11 @@ Test tiers:
     tests/drift/        — nightly real-LLM behavioural tests
     tests/arch/         — architecture & requirement coverage tests
 """
+
 import asyncio
 import uuid
 from collections.abc import AsyncGenerator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 import pytest_asyncio
@@ -26,7 +27,9 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 test_session_factory = async_sessionmaker(
-    test_engine, class_=AsyncSession, expire_on_commit=False,
+    test_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
 )
 
 
@@ -76,4 +79,4 @@ def correlation_id() -> uuid.UUID:
 
 @pytest.fixture
 def now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)

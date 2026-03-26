@@ -9,6 +9,7 @@ Tests:
   - test_decrypt_invalid_token_raises: Corrupted ciphertext raises an error
   - test_encrypt_long_string: Large payloads (API responses, JSON blobs) survive roundtrip
 """
+
 import pytest
 
 from src.shared.crypto import decrypt, encrypt
@@ -45,7 +46,7 @@ class TestEncrypt:
 
     def test_decrypt_invalid_token_raises(self):
         """Corrupted ciphertext must raise, never silently return garbage."""
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, TypeError, Exception)):  # noqa: B017
             decrypt(b"not-a-valid-fernet-token")
 
     def test_encrypt_long_string(self):

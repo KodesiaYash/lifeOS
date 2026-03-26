@@ -1,8 +1,8 @@
 """
 Abstract base class for external service connectors.
 """
-from abc import ABC, abstractmethod
 
+from abc import ABC, abstractmethod
 
 
 class BaseConnector(ABC):
@@ -39,6 +39,6 @@ class BaseConnector(ABC):
         """Handle an incoming webhook from the external service."""
         ...
 
-    async def disconnect(self) -> None:
-        """Clean up resources when disconnecting."""
+    async def disconnect(self) -> None:  # noqa: B027
+        """Clean up resources when disconnecting. Override if needed."""
         pass

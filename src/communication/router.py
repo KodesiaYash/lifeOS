@@ -3,7 +3,8 @@ API endpoints for the communication layer: webhooks and message endpoints.
 
 Single-user mode: No tenant context required.
 """
-from fastapi import APIRouter, Request, HTTPException, status
+
+from fastapi import APIRouter, HTTPException, Request, status
 
 from src.dependencies import DbSession
 
@@ -23,6 +24,7 @@ async def whatsapp_webhook(request: Request, db: DbSession) -> dict:
         return {"hub.challenge": request.query_params["hub.challenge"]}
 
     from src.communication.adapters.whatsapp import WhatsAppAdapter
+
     adapter = WhatsAppAdapter()
     event = await adapter.normalize_inbound(body)
     if event is None:
@@ -47,6 +49,7 @@ async def telegram_webhook(request: Request, db: DbSession) -> dict:
     body = await request.json()
 
     from src.communication.adapters.telegram import TelegramAdapter
+
     adapter = TelegramAdapter()
     event = await adapter.normalize_inbound(body)
     if event is None:
@@ -65,6 +68,7 @@ async def send_message_via_rest(
     Accepts a message and processes it.
     """
     from src.communication.adapters.rest_api import RestApiAdapter
+
     adapter = RestApiAdapter()
     event = await adapter.normalize_inbound(payload)
     if event is None:

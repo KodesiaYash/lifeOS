@@ -2,6 +2,7 @@
 Prompt template registry with versioning.
 Loads prompt templates from YAML files and provides them by ID and version.
 """
+
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,7 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 class PromptTemplate(BaseModel):
     """A versioned prompt template."""
+
     prompt_id: str
     version: int = 1
     template: str
@@ -60,9 +62,7 @@ class PromptRegistry:
         latest = max(versions.keys())
         return versions[latest]
 
-    def render(
-        self, prompt_id: str, version: int | None = None, **variables: Any
-    ) -> str | None:
+    def render(self, prompt_id: str, version: int | None = None, **variables: Any) -> str | None:
         """
         Get a prompt template and render it with the given variables.
         Uses Python str.format() for simple variable substitution.
@@ -95,6 +95,7 @@ class PromptRegistry:
         for filepath in directory.glob("*.yaml"):
             try:
                 import yaml
+
                 with open(filepath) as f:
                     data = yaml.safe_load(f)
                 if data:

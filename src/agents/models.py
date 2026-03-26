@@ -3,6 +3,7 @@ SQLAlchemy models for the agent system.
 
 Single-user mode: No tenant_id or user_id references.
 """
+
 import uuid
 from datetime import datetime
 
@@ -15,9 +16,12 @@ from src.shared.base_model import Base, TimestampedBase
 
 class AgentDefinition(Base):
     """Global agent template definitions."""
+
     __tablename__ = "agent_definitions"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
+    )
     agent_type: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -36,6 +40,7 @@ class AgentDefinition(Base):
 
 class AgentExecution(TimestampedBase):
     """Runtime execution record for an agent invocation."""
+
     __tablename__ = "agent_executions"
 
     agent_type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)

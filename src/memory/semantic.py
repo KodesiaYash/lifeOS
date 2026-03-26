@@ -4,6 +4,7 @@ Stores summaries, patterns, insights, and behavioral observations with embedding
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 

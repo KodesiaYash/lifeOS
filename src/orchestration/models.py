@@ -3,6 +3,7 @@ SQLAlchemy models for workflow orchestration.
 
 Single-user mode: No tenant_id or user_id references.
 """
+
 import uuid
 from datetime import datetime
 
@@ -15,6 +16,7 @@ from src.shared.base_model import TimestampedBase
 
 class WorkflowDefinition(TimestampedBase):
     """Reusable workflow template definitions."""
+
     __tablename__ = "orch_workflow_definitions"
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -29,9 +31,12 @@ class WorkflowDefinition(TimestampedBase):
 
 class WorkflowExecution(TimestampedBase):
     """Runtime instance of a workflow execution."""
+
     __tablename__ = "orch_workflow_executions"
 
-    definition_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("orch_workflow_definitions.id"), nullable=False)
+    definition_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orch_workflow_definitions.id"), nullable=False
+    )
     correlation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default="pending")
     current_step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -44,9 +49,12 @@ class WorkflowExecution(TimestampedBase):
 
 class WorkflowStepExecution(TimestampedBase):
     """Individual step execution within a workflow."""
+
     __tablename__ = "orch_workflow_step_executions"
 
-    execution_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("orch_workflow_executions.id"), nullable=False, index=True)
+    execution_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orch_workflow_executions.id"), nullable=False, index=True
+    )
     step_index: Mapped[int] = mapped_column(Integer, nullable=False)
     step_type: Mapped[str] = mapped_column(String(50), nullable=False)
     step_config: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))

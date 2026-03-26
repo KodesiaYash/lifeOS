@@ -1,6 +1,7 @@
 """
 Database engine, session factory, and dependency injection for async SQLAlchemy.
 """
+
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine

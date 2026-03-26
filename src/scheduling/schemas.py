@@ -1,6 +1,7 @@
 """
 Pydantic schemas for the scheduling system.
 """
+
 import uuid
 from datetime import datetime
 from enum import StrEnum

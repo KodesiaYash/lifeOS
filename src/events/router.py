@@ -3,6 +3,7 @@ API endpoints for event querying.
 
 Single-user mode: No tenant/user context required.
 """
+
 import uuid
 from datetime import datetime
 
@@ -16,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/events", response_model=list[PlatformEvent])
-async def list_events(
+async def list_events(  # noqa: B008
     db: DbSession,
     event_type: str | None = Query(default=None),
     domain: str | None = Query(default=None),

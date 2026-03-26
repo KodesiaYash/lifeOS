@@ -3,6 +3,7 @@ Connector management service: install, sync, and manage external connectors.
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import uuid
 
 import structlog
@@ -35,6 +36,7 @@ class ConnectorService:
 
         # Encrypt credentials
         import json
+
         credentials_encrypted = None
         if data.credentials:
             credentials_encrypted = encrypt(json.dumps(data.credentials))

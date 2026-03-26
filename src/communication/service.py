@@ -3,6 +3,7 @@ Communication service: conversation management, identity resolution, idempotency
 
 Single-user mode: No tenant_id needed.
 """
+
 import uuid
 
 import structlog

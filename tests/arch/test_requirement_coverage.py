@@ -17,6 +17,7 @@ Tests:
   - test_requirement_structure: Every requirement has required fields
   - test_coverage_report: Prints a coverage matrix (informational)
 """
+
 import importlib
 import re
 from pathlib import Path
@@ -56,8 +57,8 @@ def _scan_test_files_for_req_markers() -> dict[str, list[str]]:
         for match in re.finditer(r'@pytest\.mark\.req\(["\']([^"\']+)["\']\)', source):
             req_id = match.group(1)
             # Find the next function/method definition after this marker
-            rest = source[match.end():]
-            fn_match = re.search(r'(?:async\s+)?def\s+(test_\w+)', rest)
+            rest = source[match.end() :]
+            fn_match = re.search(r"(?:async\s+)?def\s+(test_\w+)", rest)
             if fn_match:
                 fn_name = fn_match.group(1)
                 ref = f"{test_file.relative_to(tests_root)}::{fn_name}"
@@ -93,9 +94,7 @@ class TestRequirementCoverage:
         for req in self.requirements:
             missing = required_fields - set(req.keys())
             assert not missing, f"Requirement {req.get('id', '?')} missing fields: {missing}"
-            assert len(req["acceptance_criteria"]) > 0, (
-                f"Requirement {req['id']} has no acceptance criteria"
-            )
+            assert len(req["acceptance_criteria"]) > 0, f"Requirement {req['id']} has no acceptance criteria"
 
     def test_all_p0_requirements_have_tests(self):
         """
@@ -116,8 +115,7 @@ class TestRequirementCoverage:
         if uncovered:
             pytest.skip(
                 f"{len(uncovered)} platform P0 requirements without tagged tests "
-                f"(tag tests with @pytest.mark.req('REQ-ID')): "
-                + ", ".join(uncovered[:5])
+                f"(tag tests with @pytest.mark.req('REQ-ID')): " + ", ".join(uncovered[:5])
             )
 
     def test_coverage_report(self):
@@ -138,5 +136,5 @@ class TestRequirementCoverage:
 
         total = len(self.requirements)
         covered = sum(1 for r in self.requirements if r["id"] in self.coverage)
-        print(f"\nCoverage: {covered}/{total} requirements ({100*covered//total if total else 0}%)")
+        print(f"\nCoverage: {covered}/{total} requirements ({100 * covered // total if total else 0}%)")
         print("=" * 70)

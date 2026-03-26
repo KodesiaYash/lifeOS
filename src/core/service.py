@@ -3,6 +3,7 @@ Business logic for core entities.
 
 Single-user mode: Settings and domain management only.
 """
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.models import DomainRegistry, Settings
@@ -39,9 +40,7 @@ class CoreService:
         """Get a domain by ID."""
         return await self.domains_repo.get_by_domain_id(domain_id)
 
-    async def update_domain(
-        self, domain_id: str, data: DomainRegistryUpdate
-    ) -> DomainRegistry | None:
+    async def update_domain(self, domain_id: str, data: DomainRegistryUpdate) -> DomainRegistry | None:
         """Update domain configuration."""
         return await self.domains_repo.update(
             domain_id,

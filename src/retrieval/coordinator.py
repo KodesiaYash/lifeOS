@@ -2,7 +2,8 @@
 Retrieval coordinator: routes requests to the appropriate retrievers,
 fuses results, and returns a unified RetrievalResponse.
 """
-import uuid
+
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,9 @@ from src.retrieval.reranker import Reranker
 from src.retrieval.schemas import RetrievalRequest, RetrievalResponse, RetrievalResult, RetrievalStrategy
 from src.retrieval.semantic_retriever import SemanticRetriever
 from src.retrieval.structured_retriever import StructuredRetriever
+
+if TYPE_CHECKING:
+    import uuid
 
 logger = structlog.get_logger()
 
@@ -57,10 +61,17 @@ class RetrievalCoordinator:
             )
             all_results.extend(structured_results)
 
-        if request.strategy in (
-            RetrievalStrategy.SEMANTIC, RetrievalStrategy.HYBRID, RetrievalStrategy.ALL,
-            RetrievalStrategy.MEMORY_ONLY, RetrievalStrategy.KNOWLEDGE_ONLY,
-        ) and embedding:
+        if (
+            request.strategy
+            in (
+                RetrievalStrategy.SEMANTIC,
+                RetrievalStrategy.HYBRID,
+                RetrievalStrategy.ALL,
+                RetrievalStrategy.MEMORY_ONLY,
+                RetrievalStrategy.KNOWLEDGE_ONLY,
+            )
+            and embedding
+        ):
             search_memories = request.strategy not in (RetrievalStrategy.KNOWLEDGE_ONLY,)
             search_knowledge = request.strategy not in (RetrievalStrategy.MEMORY_ONLY,)
             semantic_results = await self.semantic.search(
@@ -92,7 +103,7 @@ class RetrievalCoordinator:
         )
 
         # Limit to max_results
-        ranked = ranked[:request.max_results]
+        ranked = ranked[: request.max_results]
 
         logger.info(
             "retrieval_complete",

@@ -3,6 +3,7 @@ API endpoints for core entities (settings, domains).
 
 Single-user mode: No tenant/user management needed.
 """
+
 from fastapi import APIRouter, HTTPException
 
 from src.core.schemas import (

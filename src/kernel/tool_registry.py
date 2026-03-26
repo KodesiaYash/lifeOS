@@ -2,6 +2,7 @@
 Tool registration, lookup, and invocation.
 Tools are deterministic functions that agents can call.
 """
+
 import inspect
 from collections.abc import Callable
 from typing import Any
@@ -14,6 +15,7 @@ logger = structlog.get_logger()
 
 class ToolDefinition(BaseModel):
     """Metadata for a registered tool."""
+
     tool_id: str
     name: str
     description: str
@@ -25,6 +27,7 @@ class ToolDefinition(BaseModel):
 
 class ToolResult(BaseModel):
     """Result from a tool invocation."""
+
     tool_id: str
     success: bool
     data: Any = None

@@ -4,6 +4,7 @@ Stores ephemeral conversation context that expires after inactivity.
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import json
 
 import structlog

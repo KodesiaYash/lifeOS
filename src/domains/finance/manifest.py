@@ -1,6 +1,7 @@
 """
 Finance domain manifest — declares tools, agents, events, and workflows.
 """
+
 MANIFEST = {
     "domain_id": "finance",
     "name": "Finance",

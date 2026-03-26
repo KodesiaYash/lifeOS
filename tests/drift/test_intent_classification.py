@@ -15,6 +15,7 @@ Tests:
   - test_ambiguous_message: "I feel tired" → could be health (verifies graceful handling)
   - test_multi_domain_message: "Log my run and check my budget" → detects multiple intents
 """
+
 import json
 
 import pytest

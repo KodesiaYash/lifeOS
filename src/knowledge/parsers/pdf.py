@@ -2,6 +2,7 @@
 PDF content parser stub.
 TODO: Implement using PyPDF2 or pdfplumber.
 """
+
 import structlog
 
 logger = structlog.get_logger()

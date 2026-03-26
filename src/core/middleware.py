@@ -4,6 +4,7 @@ Request context middleware.
 Single-user mode: No tenant context needed.
 Binds request metadata to structlog for tracing.
 """
+
 import uuid
 
 import structlog
@@ -20,11 +21,9 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     for all downstream log lines.
     """
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         structlog.contextvars.clear_contextvars()
-        
+
         # Generate a request ID for tracing
         request_id = request.headers.get("X-Request-Id", str(uuid.uuid4()))
         structlog.contextvars.bind_contextvars(request_id=request_id)

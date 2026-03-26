@@ -1,6 +1,7 @@
 """
 Text chunking strategies for knowledge ingestion.
 """
+
 import structlog
 
 logger = structlog.get_logger()
@@ -31,9 +32,7 @@ class TextChunker:
         self._split_recursive(text, self.separators, chunks)
         return chunks
 
-    def _split_recursive(
-        self, text: str, separators: list[str], chunks: list[str]
-    ) -> None:
+    def _split_recursive(self, text: str, separators: list[str], chunks: list[str]) -> None:
         if len(text) <= self.chunk_size:
             stripped = text.strip()
             if stripped:
@@ -48,7 +47,7 @@ class TextChunker:
         else:
             # Last resort: hard split by characters
             for i in range(0, len(text), self.chunk_size - self.chunk_overlap):
-                chunk = text[i:i + self.chunk_size].strip()
+                chunk = text[i : i + self.chunk_size].strip()
                 if chunk:
                     chunks.append(chunk)
             return
@@ -67,7 +66,7 @@ class TextChunker:
                 else:
                     # Overlap: take the tail of the previous chunk
                     if current and self.chunk_overlap > 0:
-                        overlap_text = current[-self.chunk_overlap:]
+                        overlap_text = current[-self.chunk_overlap :]
                         current = overlap_text + separator + part
                     else:
                         current = part

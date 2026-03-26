@@ -3,6 +3,7 @@ Keyword retriever: PostgreSQL full-text search (tsvector/tsquery).
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import structlog
 from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,18 +60,20 @@ class KeywordRetriever:
 
         results: list[RetrievalResult] = []
         for row in rows:
-            results.append(RetrievalResult(
-                id=row.id,
-                source="knowledge_chunk_fts",
-                content=row.text,
-                relevance_score=float(row.rank),
-                created_at=row.created_at,
-                metadata={
-                    "document_id": str(row.document_id),
-                    "chunk_index": row.chunk_index,
-                    "search_type": "full_text",
-                },
-            ))
+            results.append(
+                RetrievalResult(
+                    id=row.id,
+                    source="knowledge_chunk_fts",
+                    content=row.text,
+                    relevance_score=float(row.rank),
+                    created_at=row.created_at,
+                    metadata={
+                        "document_id": str(row.document_id),
+                        "chunk_index": row.chunk_index,
+                        "search_type": "full_text",
+                    },
+                )
+            )
 
         logger.debug("keyword_search_complete", query=query, results=len(results))
         return results

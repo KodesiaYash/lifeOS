@@ -3,6 +3,7 @@ Structured retriever: SQL-based retrieval for facts, entities, and structured da
 
 Single-user mode: No tenant_id or user_id needed.
 """
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,19 +51,21 @@ class StructuredRetriever:
             else:
                 score = 0.2  # Base score for all active facts
 
-            results.append(RetrievalResult(
-                id=fact.id,
-                source="memory_fact",
-                content=f"{fact.key}: {fact.value}",
-                relevance_score=score,
-                domain=fact.domain,
-                created_at=fact.created_at,
-                metadata={
-                    "category": fact.category,
-                    "confidence": fact.confidence,
-                    "source": fact.source,
-                },
-            ))
+            results.append(
+                RetrievalResult(
+                    id=fact.id,
+                    source="memory_fact",
+                    content=f"{fact.key}: {fact.value}",
+                    relevance_score=score,
+                    domain=fact.domain,
+                    created_at=fact.created_at,
+                    metadata={
+                        "category": fact.category,
+                        "confidence": fact.confidence,
+                        "source": fact.source,
+                    },
+                )
+            )
 
         results.sort(key=lambda r: r.relevance_score, reverse=True)
         logger.debug("structured_search_complete", results=len(results))

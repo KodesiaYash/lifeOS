@@ -3,6 +3,7 @@ Database access layer for memory entities.
 
 Single-user mode: No tenant_id or user_id filtering.
 """
+
 import uuid
 from datetime import datetime
 
@@ -53,9 +54,7 @@ class MemoryFactRepository:
 
     async def supersede(self, old_id: uuid.UUID, new_id: uuid.UUID) -> None:
         await self.session.execute(
-            update(MemoryFact)
-            .where(MemoryFact.id == old_id)
-            .values(active=False, superseded_by=new_id)
+            update(MemoryFact).where(MemoryFact.id == old_id).values(active=False, superseded_by=new_id)
         )
 
 
@@ -111,8 +110,6 @@ class ConversationSummaryRepository:
 
     async def list_recent(self, limit: int = 10) -> list[ConversationSummary]:
         result = await self.session.execute(
-            select(ConversationSummary)
-            .order_by(ConversationSummary.created_at.desc())
-            .limit(limit)
+            select(ConversationSummary).order_by(ConversationSummary.created_at.desc()).limit(limit)
         )
         return list(result.scalars().all())

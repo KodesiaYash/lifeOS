@@ -7,8 +7,9 @@ Tests:
   - test_connector_instance_defaults: Default credentials={}, config={}
   - test_sync_log_read: Sync log fields are preserved
 """
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.connectors.schemas import (
     ConnectorDefinitionCreate,
@@ -73,8 +74,8 @@ class TestSyncLogRead:
             records_updated=6,
             records_skipped=0,
             error_message=None,
-            started_at=datetime.now(timezone.utc),
-            completed_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
+            completed_at=datetime.now(UTC),
             duration_ms=1200,
         )
         assert log.records_fetched == 24

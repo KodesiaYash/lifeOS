@@ -2,6 +2,7 @@
 WhatsApp channel adapter (Meta Cloud API).
 Stub implementation — webhook parsing and message sending scaffolded.
 """
+
 import hashlib
 import hmac
 
@@ -35,11 +36,14 @@ class WhatsAppAdapter(ChannelAdapter):
         signature = headers.get("x-hub-signature-256", "")
         if not signature or not self.app_secret:
             return False
-        expected = "sha256=" + hmac.new(
-            self.app_secret.encode(),
-            body,
-            hashlib.sha256,
-        ).hexdigest()
+        expected = (
+            "sha256="
+            + hmac.new(
+                self.app_secret.encode(),
+                body,
+                hashlib.sha256,
+            ).hexdigest()
+        )
         return hmac.compare_digest(signature, expected)
 
     async def normalize_inbound(self, raw_payload: dict) -> NormalizedInboundEvent | None:
