@@ -1,5 +1,7 @@
 """
 Database access layer for knowledge entities.
+
+Single-user mode: No tenant_id or user_id filtering.
 """
 import uuid
 
@@ -21,25 +23,17 @@ class KnowledgeDocumentRepository:
     async def get_by_id(self, doc_id: uuid.UUID) -> KnowledgeDocument | None:
         return await self.session.get(KnowledgeDocument, doc_id)
 
-    async def get_by_content_hash(
-        self, tenant_id: uuid.UUID, content_hash: str
-    ) -> KnowledgeDocument | None:
+    async def get_by_content_hash(self, content_hash: str) -> KnowledgeDocument | None:
         result = await self.session.execute(
             select(KnowledgeDocument).where(
-                KnowledgeDocument.tenant_id == tenant_id,
                 KnowledgeDocument.content_hash == content_hash,
             )
         )
         return result.scalar_one_or_none()
 
-    async def get_by_url(
-        self, tenant_id: uuid.UUID, url: str
-    ) -> KnowledgeDocument | None:
+    async def get_by_url(self, url: str) -> KnowledgeDocument | None:
         result = await self.session.execute(
-            select(KnowledgeDocument).where(
-                KnowledgeDocument.tenant_id == tenant_id,
-                KnowledgeDocument.url == url,
-            )
+            select(KnowledgeDocument).where(KnowledgeDocument.url == url)
         )
         return result.scalar_one_or_none()
 
@@ -53,17 +47,13 @@ class KnowledgeDocumentRepository:
             update(KnowledgeDocument).where(KnowledgeDocument.id == doc_id).values(**values)
         )
 
-    async def list_by_user(
+    async def list_all(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         status: str | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> list[KnowledgeDocument]:
         stmt = select(KnowledgeDocument).where(
-            KnowledgeDocument.tenant_id == tenant_id,
-            KnowledgeDocument.user_id == user_id,
             KnowledgeDocument.deleted_at.is_(None),
         )
         if status is not None:
@@ -84,16 +74,12 @@ class KnowledgeChunkRepository:
 
     async def search_by_embedding(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         embedding: list[float],
         limit: int = 10,
     ) -> list[KnowledgeChunk]:
         stmt = (
             select(KnowledgeChunk)
             .where(
-                KnowledgeChunk.tenant_id == tenant_id,
-                KnowledgeChunk.user_id == user_id,
                 KnowledgeChunk.embedding.isnot(None),
                 KnowledgeChunk.deleted_at.is_(None),
             )
@@ -121,12 +107,9 @@ class KnowledgeRelationRepository:
         await self.session.flush()
         return relations
 
-    async def search_by_entity(
-        self, tenant_id: uuid.UUID, entity_name: str
-    ) -> list[KnowledgeRelation]:
+    async def search_by_entity(self, entity_name: str) -> list[KnowledgeRelation]:
         result = await self.session.execute(
             select(KnowledgeRelation).where(
-                KnowledgeRelation.tenant_id == tenant_id,
                 KnowledgeRelation.entity_name == entity_name,
             )
         )

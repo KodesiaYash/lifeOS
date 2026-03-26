@@ -1,9 +1,10 @@
 """
 Knowledge ingestion pipeline orchestrator.
 Coordinates: fetch → parse → deduplicate → chunk → embed → tag → store.
+
+Single-user mode: No tenant_id or user_id needed.
 """
 import hashlib
-import uuid
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,8 +42,6 @@ class IngestionPipeline:
 
     async def ingest(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         data: KnowledgeDocumentCreate,
         raw_content: str | None = None,
     ) -> KnowledgeDocument:
@@ -52,8 +51,6 @@ class IngestionPipeline:
         """
         # 1. Create document record
         doc = KnowledgeDocument(
-            tenant_id=tenant_id,
-            user_id=user_id,
             source_type=data.source_type,
             url=data.url,
             title=data.title,
@@ -79,7 +76,7 @@ class IngestionPipeline:
 
             # 3. Deduplication check
             content_hash = hashlib.sha256(raw_content.encode()).hexdigest()
-            existing = await self.doc_repo.get_by_content_hash(tenant_id, content_hash)
+            existing = await self.doc_repo.get_by_content_hash(content_hash)
             if existing and existing.id != doc.id:
                 await self.doc_repo.update_status(doc.id, "failed", f"Duplicate of document {existing.id}")
                 logger.info("document_duplicate", doc_id=str(doc.id), existing_id=str(existing.id))
@@ -100,8 +97,6 @@ class IngestionPipeline:
             # 6. Store chunks
             chunks = [
                 KnowledgeChunk(
-                    tenant_id=tenant_id,
-                    user_id=user_id,
                     document_id=doc.id,
                     chunk_index=i,
                     text=text,

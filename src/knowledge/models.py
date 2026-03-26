@@ -1,22 +1,25 @@
 """
 SQLAlchemy models for the knowledge store.
+
+Single-user mode: No tenant_id or user_id references.
 """
 import uuid
 from datetime import datetime
 
+from typing import Any
+
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, text
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.shared.base_model import TenantAwareBase
+from src.shared.base_model import TimestampedBase
 
 
-class KnowledgeDocument(TenantAwareBase):
+class KnowledgeDocument(TimestampedBase):
     """Metadata for ingested knowledge documents."""
     __tablename__ = "know_documents"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=False, index=True)
     source_type: Mapped[str] = mapped_column(String(50), nullable=False)
     url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     title: Mapped[str | None] = mapped_column(String(1000), nullable=True)
@@ -42,24 +45,22 @@ class KnowledgeDocument(TenantAwareBase):
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
 
 
-class KnowledgeChunk(TenantAwareBase):
+class KnowledgeChunk(TimestampedBase):
     """Text chunks with embeddings for vector search."""
     __tablename__ = "know_chunks"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=False)
     document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("know_documents.id", ondelete="CASCADE"), nullable=False, index=True)
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
-    text: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
     token_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    embedding = mapped_column(Vector(1536), nullable=True)
+    embedding = Column(Vector(1536), nullable=True)
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
 
 
-class KnowledgeRelation(TenantAwareBase):
+class KnowledgeRelation(TimestampedBase):
     """Entity and topic relationships extracted from knowledge."""
     __tablename__ = "know_relations"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=False)
     document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("know_documents.id", ondelete="CASCADE"), nullable=True)
     entity_name: Mapped[str] = mapped_column(String(500), nullable=False)
     entity_type: Mapped[str] = mapped_column(String(100), nullable=False)

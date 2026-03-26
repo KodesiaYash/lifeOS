@@ -22,8 +22,6 @@ class KnowledgeDocumentCreate(BaseModel):
 
 class KnowledgeDocumentRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     source_type: str
     url: str | None
     title: str | None
