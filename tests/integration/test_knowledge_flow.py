@@ -11,7 +11,6 @@ Tests:
   - test_chunk_content_completeness: All sentences from source appear in chunks
   - test_chunk_metadata_indices: Chunks have sequential indices
 """
-import pytest
 
 from src.knowledge.chunking import TextChunker, estimate_tokens
 

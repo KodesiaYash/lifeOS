@@ -5,7 +5,6 @@ Single-user mode: No tenant context required.
 """
 from fastapi import APIRouter, Request, HTTPException, status
 
-from src.communication.schemas import MessageRead, NormalizedInboundEvent, OutboundMessage
 from src.dependencies import DbSession
 
 router = APIRouter()

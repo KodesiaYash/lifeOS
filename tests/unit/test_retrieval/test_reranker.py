@@ -13,7 +13,6 @@ Tests:
 import uuid
 from datetime import datetime, timedelta, timezone
 
-import pytest
 
 from src.retrieval.reranker import Reranker
 from src.retrieval.schemas import RetrievalResult

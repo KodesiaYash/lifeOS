@@ -6,8 +6,6 @@ Unit tests must:
   - Use mocks/fakes for all I/O boundaries
   - Run in < 1 second total
 """
-import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest

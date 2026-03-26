@@ -2,9 +2,7 @@
 Abstract base class for external service connectors.
 """
 from abc import ABC, abstractmethod
-from typing import Any
 
-from src.connectors.schemas import SyncLogRead
 
 
 class BaseConnector(ABC):

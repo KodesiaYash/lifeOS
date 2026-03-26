@@ -6,7 +6,6 @@ Single-user mode: No tenant_id or user_id references.
 import uuid
 from datetime import datetime
 
-from typing import Any
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text, text

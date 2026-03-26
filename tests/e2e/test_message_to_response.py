@@ -12,13 +12,11 @@ Tests:
 """
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from src.agents.registry import AgentRegistry
 from src.agents.schemas import AgentDefinitionRead
-from src.events.bus import EventBus
 from src.kernel.prompt_registry import PromptRegistry, PromptTemplate
 from src.kernel.tool_registry import ToolDefinition, ToolRegistry
 

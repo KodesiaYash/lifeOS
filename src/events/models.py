@@ -6,7 +6,7 @@ Single-user mode: No tenant_id or user_id references.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, String, Text, text
+from sqlalchemy import DateTime, Float, String, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 

@@ -192,17 +192,17 @@ class GlobalOrchestrator:
             facts = ctx.memory_context.get("user_facts", [])
             if facts:
                 fact_lines = [f"- {f['key']}: {f['value']}" for f in facts[:20]]
-                parts.append(f"\n## What you know about this user:\n" + "\n".join(fact_lines))
+                parts.append("\n## What you know about this user:\n" + "\n".join(fact_lines))
 
             summaries = ctx.memory_context.get("recent_summaries", [])
             if summaries:
-                parts.append(f"\n## Recent conversation context:\n" + "\n".join(summaries[:3]))
+                parts.append("\n## Recent conversation context:\n" + "\n".join(summaries[:3]))
 
         # Add retrieval context
         if ctx.retrieval_context:
             context_texts = [r["content"] for r in ctx.retrieval_context[:5]]
             if context_texts:
-                parts.append(f"\n## Relevant knowledge:\n" + "\n---\n".join(context_texts))
+                parts.append("\n## Relevant knowledge:\n" + "\n---\n".join(context_texts))
 
         return "\n\n".join(parts)
 

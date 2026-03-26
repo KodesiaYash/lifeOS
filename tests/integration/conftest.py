@@ -6,8 +6,6 @@ Integration tests:
   - Mock Redis and LLM calls
   - Test module-to-module data flows through real DB
 """
-import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest

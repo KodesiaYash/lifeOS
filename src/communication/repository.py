@@ -10,13 +10,10 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.communication.models import (
-    Attachment,
     Channel,
-    ChannelAccount,
     ChannelIdentity,
     Conversation,
     Message,
-    MessageEvent,
 )
 
 

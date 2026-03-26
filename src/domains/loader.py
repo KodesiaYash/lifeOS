@@ -24,7 +24,7 @@ import structlog
 
 from src.agents.registry import AgentRegistry
 from src.agents.schemas import AgentDefinitionRead
-from src.domains.plugin import DomainPlugin, ToolDeclaration
+from src.domains.plugin import DomainPlugin
 from src.events.bus import EventBus
 from src.kernel.tool_registry import ToolDefinition, ToolRegistry
 

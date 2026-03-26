@@ -14,7 +14,6 @@ Tests:
   - test_estimate_tokens_empty: Empty string → 0 tokens
   - test_estimate_tokens_long: Proportional to text length
 """
-import pytest
 
 from src.knowledge.chunking import TextChunker, estimate_tokens
 

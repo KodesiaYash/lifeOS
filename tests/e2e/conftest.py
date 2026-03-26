@@ -8,12 +8,9 @@ E2E tests:
   - Cassettes stored in tests/cassettes/
 """
 import json
-import os
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
 
 import pytest
-import pytest_asyncio
 
 CASSETTES_DIR = Path(__file__).parent.parent / "cassettes"
 

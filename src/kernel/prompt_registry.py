@@ -2,7 +2,6 @@
 Prompt template registry with versioning.
 Loads prompt templates from YAML files and provides them by ID and version.
 """
-import os
 from pathlib import Path
 from typing import Any
 

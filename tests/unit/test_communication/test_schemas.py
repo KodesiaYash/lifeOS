@@ -6,14 +6,11 @@ Tests:
   - test_channel_type_enum_values: All expected channel types exist
   - test_outbound_message: Valid outbound message schema
 """
-import pytest
 
 from src.communication.schemas import (
     NormalizedInboundEvent,
-    OutboundMessage,
     ContentType,
     ChannelType,
-    DeliveryReceipt,
 )
 
 

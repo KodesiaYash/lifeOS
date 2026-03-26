@@ -18,9 +18,7 @@ Tests:
   - test_coverage_report: Prints a coverage matrix (informational)
 """
 import importlib
-import os
 import re
-import ast
 from pathlib import Path
 
 import pytest

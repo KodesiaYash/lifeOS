@@ -17,7 +17,6 @@ Tests:
   - test_platform_scenarios_covered: Platform scenarios have corresponding tests
   - test_scenario_report: Full scenario coverage report (informational)
 """
-import hashlib
 import importlib
 import re
 from pathlib import Path

@@ -2,8 +2,11 @@
 Pagination utilities for list endpoints.
 """
 from dataclasses import dataclass
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
+
+T = TypeVar("T")
 
 
 class PaginationParams(BaseModel):
@@ -13,7 +16,7 @@ class PaginationParams(BaseModel):
 
 
 @dataclass
-class PaginatedResult[T]:
+class PaginatedResult(Generic[T]):
     """Generic paginated result container."""
     items: list[T]
     total: int

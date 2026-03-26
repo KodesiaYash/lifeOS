@@ -57,7 +57,7 @@ class WhatsAppAdapter(ChannelAdapter):
                 return None
 
             msg = messages[0]
-            contact = value.get("contacts", [{}])[0]
+            # contact info available via: value.get("contacts", [{}])[0]
 
             text = None
             content_type = ContentType.TEXT

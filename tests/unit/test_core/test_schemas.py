@@ -8,10 +8,8 @@ Single-user mode tests:
 import uuid
 from datetime import datetime
 
-import pytest
-from pydantic import ValidationError
 
-from src.core.schemas import SettingsRead, SettingsUpdate, DomainRegistryRead, DomainRegistryUpdate
+from src.core.schemas import SettingsRead, SettingsUpdate, DomainRegistryUpdate
 
 
 class TestSettingsUpdate:
