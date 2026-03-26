@@ -46,5 +46,3 @@ class TimestampedBase(Base):
         nullable=True,
         default=None,
     )
-
-
