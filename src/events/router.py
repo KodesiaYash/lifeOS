@@ -1,12 +1,14 @@
 """
 API endpoints for event querying.
+
+Single-user mode: No tenant/user context required.
 """
 import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Query
 
-from src.dependencies import DbSession, TenantId, UserId
+from src.dependencies import DbSession
 from src.events.repository import EventRepository
 from src.events.schemas import EventQuery, PlatformEvent
 
@@ -16,8 +18,6 @@ router = APIRouter()
 @router.get("/events", response_model=list[PlatformEvent])
 async def list_events(
     db: DbSession,
-    tenant_id: TenantId,
-    user_id: uuid.UUID | None = Query(default=None),
     event_type: str | None = Query(default=None),
     domain: str | None = Query(default=None),
     correlation_id: uuid.UUID | None = Query(default=None),
@@ -28,8 +28,6 @@ async def list_events(
 ) -> list[PlatformEvent]:
     repo = EventRepository(db)
     query = EventQuery(
-        tenant_id=tenant_id,
-        user_id=user_id,
         event_type=event_type,
         domain=domain,
         correlation_id=correlation_id,
@@ -42,8 +40,6 @@ async def list_events(
     return [
         PlatformEvent(
             id=e.id,
-            tenant_id=e.tenant_id,
-            user_id=e.user_id,
             event_type=e.event_type,
             event_category=e.event_category,
             domain=e.domain,

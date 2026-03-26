@@ -1,8 +1,9 @@
 """
 Database access layer for events.
+
+Single-user mode: No tenant_id or user_id filtering.
 """
 import uuid
-from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,8 +20,6 @@ class EventRepository:
         """Persist a PlatformEvent to the database."""
         db_event = Event(
             id=event.id,
-            tenant_id=event.tenant_id,
-            user_id=event.user_id,
             event_type=event.event_type,
             event_category=event.event_category,
             domain=event.domain,
@@ -38,10 +37,8 @@ class EventRepository:
 
     async def query(self, query: EventQuery) -> list[Event]:
         """Query events with filters."""
-        stmt = select(Event).where(Event.tenant_id == query.tenant_id)
+        stmt = select(Event)
 
-        if query.user_id is not None:
-            stmt = stmt.where(Event.user_id == query.user_id)
         if query.event_type is not None:
             stmt = stmt.where(Event.event_type == query.event_type)
         if query.domain is not None:
@@ -58,13 +55,11 @@ class EventRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_correlation_id(
-        self, tenant_id: uuid.UUID, correlation_id: uuid.UUID
-    ) -> list[Event]:
+    async def get_by_correlation_id(self, correlation_id: uuid.UUID) -> list[Event]:
         """Get all events in a correlation chain."""
         result = await self.session.execute(
             select(Event)
-            .where(Event.tenant_id == tenant_id, Event.correlation_id == correlation_id)
+            .where(Event.correlation_id == correlation_id)
             .order_by(Event.timestamp.asc())
         )
         return list(result.scalars().all())

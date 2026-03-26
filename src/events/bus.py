@@ -52,7 +52,6 @@ class EventBus:
             "event_published",
             event_type=event.event_type,
             event_id=str(event.id),
-            tenant_id=str(event.tenant_id),
             correlation_id=str(event.correlation_id) if event.correlation_id else None,
         )
 

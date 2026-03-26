@@ -1,5 +1,7 @@
 """
 Pydantic schemas for the platform event model.
+
+Single-user mode: No tenant_id or user_id references.
 """
 import uuid
 from datetime import datetime
@@ -10,8 +12,6 @@ from pydantic import BaseModel, Field
 class PlatformEvent(BaseModel):
     """Canonical event schema for all domain and system events."""
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     event_type: str                                # e.g., "health.meal_logged"
     event_category: str = "domain"                 # "domain", "system", "communication"
     domain: str | None = None                      # Source domain, None for system events
@@ -26,8 +26,6 @@ class PlatformEvent(BaseModel):
 
 class EventQuery(BaseModel):
     """Query parameters for event retrieval."""
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID | None = None
     event_type: str | None = None
     domain: str | None = None
     correlation_id: uuid.UUID | None = None

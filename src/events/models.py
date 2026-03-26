@@ -1,5 +1,7 @@
 """
 SQLAlchemy model for the event log (evt_events).
+
+Single-user mode: No tenant_id or user_id references.
 """
 import uuid
 from datetime import datetime
@@ -15,8 +17,6 @@ class Event(Base):
     __tablename__ = "evt_events"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"))
-    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     event_type: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     event_category: Mapped[str] = mapped_column(String(50), nullable=False)
     domain: Mapped[str | None] = mapped_column(String(100), nullable=True)
