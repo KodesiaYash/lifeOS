@@ -32,9 +32,24 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: str = "minioadmin"
     S3_BUCKET_NAME: str = "lifeos"
 
-    # --- LLM / AI ---
+    # --- LLM / AI (LiteLLM supports multiple providers) ---
+    # OpenAI
     OPENAI_API_KEY: str = ""
-    DEFAULT_LLM_MODEL: str = "gpt-4o-mini"
+    # Anthropic
+    ANTHROPIC_API_KEY: str = ""
+    # Google (Gemini)
+    GEMINI_API_KEY: str = ""
+    # Groq
+    GROQ_API_KEY: str = ""
+    # Mistral
+    MISTRAL_API_KEY: str = ""
+    # Azure OpenAI
+    AZURE_API_KEY: str = ""
+    AZURE_API_BASE: str = ""
+    AZURE_API_VERSION: str = "2024-02-15-preview"
+
+    # Default models (LiteLLM format: provider/model)
+    DEFAULT_LLM_MODEL: str = "gpt-4o-mini"  # or anthropic/claude-3-sonnet, gemini/gemini-pro, groq/llama3-70b-8192
     DEFAULT_EMBEDDING_MODEL: str = "text-embedding-3-small"
     EMBEDDING_DIMENSIONS: int = 1536
 
