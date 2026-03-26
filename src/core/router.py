@@ -1,87 +1,65 @@
 """
-API endpoints for core entities (tenants, users, workspaces).
-"""
-import uuid
+API endpoints for core entities (settings, domains).
 
+Single-user mode: No tenant/user management needed.
+"""
 from fastapi import APIRouter, HTTPException, status
 
 from src.core.schemas import (
-    TenantCreate,
-    TenantRead,
-    TenantUserCreate,
-    TenantUserRead,
-    UserCreate,
-    UserRead,
-    WorkspaceCreate,
-    WorkspaceRead,
+    DomainRegistryRead,
+    DomainRegistryUpdate,
+    SettingsRead,
+    SettingsUpdate,
 )
 from src.core.service import CoreService
-from src.dependencies import DbSession, TenantId
+from src.dependencies import DbSession
 
 router = APIRouter()
 
 
-@router.post("/tenants", response_model=TenantRead, status_code=status.HTTP_201_CREATED)
-async def create_tenant(data: TenantCreate, db: DbSession) -> TenantRead:
+@router.get("/settings", response_model=SettingsRead)
+async def get_settings(db: DbSession) -> SettingsRead:
+    """Get application settings."""
     service = CoreService(db)
-    tenant = await service.create_tenant(data)
-    return TenantRead.model_validate(tenant)
+    settings = await service.get_settings()
+    return SettingsRead.model_validate(settings)
 
 
-@router.get("/tenants/{tenant_id}", response_model=TenantRead)
-async def get_tenant(tenant_id: uuid.UUID, db: DbSession) -> TenantRead:
+@router.patch("/settings", response_model=SettingsRead)
+async def update_settings(data: SettingsUpdate, db: DbSession) -> SettingsRead:
+    """Update application settings."""
     service = CoreService(db)
-    tenant = await service.tenants.get_by_id(tenant_id)
-    if not tenant:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-    return TenantRead.model_validate(tenant)
+    settings = await service.update_settings(data)
+    return SettingsRead.model_validate(settings)
 
 
-@router.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-async def create_user(data: UserCreate, db: DbSession) -> UserRead:
+@router.get("/domains", response_model=list[DomainRegistryRead])
+async def list_domains(db: DbSession) -> list[DomainRegistryRead]:
+    """List all registered domains."""
     service = CoreService(db)
-    user = await service.create_user(data)
-    return UserRead.model_validate(user)
+    domains = await service.list_domains()
+    return [DomainRegistryRead.model_validate(d) for d in domains]
 
 
-@router.get("/users/{user_id}", response_model=UserRead)
-async def get_user(user_id: uuid.UUID, db: DbSession) -> UserRead:
+@router.get("/domains/{domain_id}", response_model=DomainRegistryRead)
+async def get_domain(domain_id: str, db: DbSession) -> DomainRegistryRead:
+    """Get a specific domain by ID."""
     service = CoreService(db)
-    user = await service.users.get_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return UserRead.model_validate(user)
+    domain = await service.get_domain(domain_id)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    return DomainRegistryRead.model_validate(domain)
 
 
-@router.post(
-    "/tenants/{tenant_id}/users",
-    response_model=TenantUserRead,
-    status_code=status.HTTP_201_CREATED,
-)
-async def add_user_to_tenant(
-    tenant_id: uuid.UUID,
-    data: TenantUserCreate,
+@router.patch("/domains/{domain_id}", response_model=DomainRegistryRead)
+async def update_domain(
+    domain_id: str,
+    data: DomainRegistryUpdate,
     db: DbSession,
-) -> TenantUserRead:
+) -> DomainRegistryRead:
+    """Update domain configuration."""
     service = CoreService(db)
-    tenant_user = await service.add_user_to_tenant(
-        tenant_id=tenant_id,
-        user_id=data.user_id,
-        role=data.role,
-    )
-    return TenantUserRead.model_validate(tenant_user)
-
-
-@router.post(
-    "/workspaces",
-    response_model=WorkspaceRead,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_workspace(
-    data: WorkspaceCreate,
-    db: DbSession,
-    tenant_id: TenantId,
-) -> WorkspaceRead:
-    service = CoreService(db)
-    workspace = await service.create_workspace(tenant_id, data)
-    return WorkspaceRead.model_validate(workspace)
+    domain = await service.update_domain(domain_id, data)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    return DomainRegistryRead.model_validate(domain)

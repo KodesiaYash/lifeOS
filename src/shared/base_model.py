@@ -1,5 +1,5 @@
 """
-SQLAlchemy declarative base with standard columns for all tenant-aware models.
+SQLAlchemy declarative base with standard columns for all models.
 """
 import uuid
 from datetime import datetime
@@ -14,10 +14,10 @@ class Base(DeclarativeBase):
     pass
 
 
-class TenantAwareBase(Base):
+class TimestampedBase(Base):
     """
-    Abstract base for all tenant-scoped tables.
-    Provides: id, tenant_id, created_at, updated_at, deleted_at.
+    Abstract base for all tables with standard columns.
+    Provides: id, created_at, updated_at, deleted_at.
     """
     __abstract__ = True
 
@@ -26,11 +26,6 @@ class TenantAwareBase(Base):
         primary_key=True,
         default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
-    )
-    tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=False,
-        index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -48,3 +43,7 @@ class TenantAwareBase(Base):
         nullable=True,
         default=None,
     )
+
+
+# Alias for backward compatibility during migration
+TenantAwareBase = TimestampedBase
