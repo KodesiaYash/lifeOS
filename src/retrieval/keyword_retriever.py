@@ -1,8 +1,8 @@
 """
 Keyword retriever: PostgreSQL full-text search (tsvector/tsquery).
-"""
-import uuid
 
+Single-user mode: No tenant_id or user_id needed.
+"""
 import structlog
 from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,8 +20,6 @@ class KeywordRetriever:
 
     async def search(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         query: str,
         max_results: int = 10,
     ) -> list[RetrievalResult]:
@@ -44,9 +42,7 @@ class KeywordRetriever:
                 kc.created_at,
                 ts_rank(to_tsvector('english', kc.text), to_tsquery('english', :tsquery)) AS rank
             FROM know_chunks kc
-            WHERE kc.tenant_id = :tenant_id
-              AND kc.user_id = :user_id
-              AND kc.deleted_at IS NULL
+            WHERE kc.deleted_at IS NULL
               AND to_tsvector('english', kc.text) @@ to_tsquery('english', :tsquery)
             ORDER BY rank DESC
             LIMIT :limit
@@ -55,8 +51,6 @@ class KeywordRetriever:
         result = await self.session.execute(
             stmt,
             {
-                "tenant_id": str(tenant_id),
-                "user_id": str(user_id),
                 "tsquery": tsquery,
                 "limit": max_results,
             },

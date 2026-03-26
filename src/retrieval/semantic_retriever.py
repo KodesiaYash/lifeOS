@@ -1,8 +1,8 @@
 """
 Semantic retriever: pgvector cosine similarity search across memories and knowledge.
-"""
-import uuid
 
+Single-user mode: No tenant_id or user_id needed.
+"""
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,8 +23,6 @@ class SemanticRetriever:
 
     async def search(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         query_embedding: list[float],
         max_results: int = 10,
         domain: str | None = None,
@@ -36,8 +34,6 @@ class SemanticRetriever:
 
         if search_memories:
             memories = await self.semantic_repo.search_by_embedding(
-                tenant_id=tenant_id,
-                user_id=user_id,
                 embedding=query_embedding,
                 limit=max_results,
                 domain=domain,
@@ -55,8 +51,6 @@ class SemanticRetriever:
 
         if search_knowledge:
             chunks = await self.chunk_repo.search_by_embedding(
-                tenant_id=tenant_id,
-                user_id=user_id,
                 embedding=query_embedding,
                 limit=max_results,
             )

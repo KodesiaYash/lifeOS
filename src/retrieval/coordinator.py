@@ -51,8 +51,6 @@ class RetrievalCoordinator:
         # Route to retrievers based on strategy
         if request.strategy in (RetrievalStrategy.STRUCTURED, RetrievalStrategy.HYBRID, RetrievalStrategy.ALL):
             structured_results = await self.structured.search(
-                tenant_id=request.tenant_id,
-                user_id=request.user_id,
                 query=request.query,
                 domain=domain,
                 max_results=request.max_results,
@@ -66,8 +64,6 @@ class RetrievalCoordinator:
             search_memories = request.strategy not in (RetrievalStrategy.KNOWLEDGE_ONLY,)
             search_knowledge = request.strategy not in (RetrievalStrategy.MEMORY_ONLY,)
             semantic_results = await self.semantic.search(
-                tenant_id=request.tenant_id,
-                user_id=request.user_id,
                 query_embedding=embedding,
                 max_results=request.max_results,
                 domain=domain,
@@ -78,8 +74,6 @@ class RetrievalCoordinator:
 
         if request.strategy in (RetrievalStrategy.KEYWORD, RetrievalStrategy.HYBRID, RetrievalStrategy.ALL):
             keyword_results = await self.keyword.search(
-                tenant_id=request.tenant_id,
-                user_id=request.user_id,
                 query=request.query,
                 max_results=request.max_results,
             )

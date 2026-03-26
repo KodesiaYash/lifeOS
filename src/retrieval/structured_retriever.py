@@ -1,8 +1,8 @@
 """
 Structured retriever: SQL-based retrieval for facts, entities, and structured data.
-"""
-import uuid
 
+Single-user mode: No tenant_id or user_id needed.
+"""
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,8 +21,6 @@ class StructuredRetriever:
 
     async def search(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         query: str,
         domain: str | None = None,
         category: str | None = None,
@@ -33,9 +31,9 @@ class StructuredRetriever:
         Also performs simple keyword matching on fact keys and values.
         """
         if category:
-            facts = await self.fact_repo.list_by_category(tenant_id, user_id, category, domain)
+            facts = await self.fact_repo.list_by_category(category, domain)
         else:
-            facts = await self.fact_repo.list_all_active(tenant_id, user_id, domain)
+            facts = await self.fact_repo.list_all_active(domain)
 
         results: list[RetrievalResult] = []
         query_lower = query.lower()

@@ -25,8 +25,6 @@ class TimeRange(BaseModel):
 
 class RetrievalRequest(BaseModel):
     """Request for retrieving relevant context from all sources."""
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     query: str
     query_embedding: list[float] | None = None
 
