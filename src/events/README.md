@@ -20,8 +20,6 @@ from src.events.schemas import PlatformEvent
 
 # Publish an event
 event = PlatformEvent(
-    tenant_id=tenant_id,
-    user_id=user_id,
     event_type="health.meal_logged",
     domain="health",
     payload={"calories": 520},

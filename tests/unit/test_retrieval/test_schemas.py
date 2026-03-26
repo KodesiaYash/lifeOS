@@ -20,8 +20,6 @@ class TestRetrievalRequest:
     def test_request_defaults(self):
         """Default: hybrid strategy, 20 results, 0.3 min score."""
         req = RetrievalRequest(
-            tenant_id=uuid.uuid4(),
-            user_id=uuid.uuid4(),
             query="test query",
         )
         assert req.strategy == RetrievalStrategy.HYBRID
@@ -31,8 +29,6 @@ class TestRetrievalRequest:
     def test_request_custom_strategy(self):
         """Can specify SEMANTIC-only retrieval."""
         req = RetrievalRequest(
-            tenant_id=uuid.uuid4(),
-            user_id=uuid.uuid4(),
             query="test",
             strategy=RetrievalStrategy.SEMANTIC,
         )

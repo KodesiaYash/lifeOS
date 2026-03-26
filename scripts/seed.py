@@ -1,61 +1,33 @@
 """
 Seed script: populates the database with initial data for development/testing.
-Creates a default tenant, user, workspace, and domain registrations.
+Creates default settings, domain registrations, and communication channels.
+
+Single-user mode: No tenant/user/workspace models needed.
 
 Usage:
     python -m scripts.seed
 """
 import asyncio
-import uuid
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.config import settings
 from src.shared.database import async_session_factory
 
 
 async def seed_data() -> None:
     """Seed the database with initial development data."""
     async with async_session_factory() as session:
-        from src.core.models import DomainRegistry, Tenant, TenantUser, User, Workspace
+        from src.core.models import DomainRegistry, Settings
 
-        # --- Default Tenant ---
-        tenant = Tenant(
-            id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
-            name="Personal",
-            slug="personal",
-            plan="personal",
-            settings={"default_timezone": "UTC"},
+        # --- Default Settings ---
+        default_settings = Settings(
+            key="app",
+            value={
+                "timezone": "UTC",
+                "language": "en",
+                "theme": "system",
+                "notifications_enabled": True,
+            },
         )
-        session.add(tenant)
-
-        # --- Default User ---
-        user = User(
-            id=uuid.UUID("00000000-0000-0000-0000-000000000002"),
-            email="admin@lifeos.local",
-            name="Admin User",
-            display_name="Admin",
-            timezone="UTC",
-            language="en",
-        )
-        session.add(user)
-
-        # --- Link User to Tenant ---
-        tenant_user = TenantUser(
-            tenant_id=tenant.id,
-            user_id=user.id,
-            role="owner",
-        )
-        session.add(tenant_user)
-
-        # --- Default Workspace ---
-        workspace = Workspace(
-            tenant_id=tenant.id,
-            name="My Life",
-            type="personal",
-            settings={},
-        )
-        session.add(workspace)
+        session.add(default_settings)
 
         # --- Domain Registrations ---
         domains = [
@@ -105,8 +77,9 @@ async def seed_data() -> None:
         for d in domains:
             session.add(DomainRegistry(**d))
 
-        # --- Default Communication Channel ---
+        # --- Default Communication Channels ---
         from src.communication.models import Channel
+
         channels = [
             Channel(type="whatsapp", display_name="WhatsApp"),
             Channel(type="telegram", display_name="Telegram"),
@@ -117,9 +90,9 @@ async def seed_data() -> None:
 
         await session.commit()
         print("✅ Seed data created successfully.")
-        print(f"   Tenant ID: {tenant.id}")
-        print(f"   User ID:   {user.id}")
-        print(f"   Domains:   {len(domains)} registered")
+        print(f"   Settings: default app settings created")
+        print(f"   Domains:  {len(domains)} registered")
+        print(f"   Channels: {len(channels)} registered")
 
 
 if __name__ == "__main__":

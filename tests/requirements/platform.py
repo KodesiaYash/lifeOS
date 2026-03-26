@@ -8,12 +8,12 @@ Each requirement has: id, title, description, acceptance_criteria, priority, tes
 REQUIREMENTS = [
     {
         "id": "REQ-PLAT-001",
-        "title": "Multi-Tenant Data Isolation",
-        "description": "Every data row is scoped to a tenant_id. Users of tenant A cannot access tenant B's data.",
+        "title": "Single-User Data Model",
+        "description": "All data belongs to the single user running the application. No multi-tenancy overhead.",
         "acceptance_criteria": [
-            "All SQLAlchemy models inherit TenantAwareBase or have tenant_id column",
-            "All repository queries filter by tenant_id",
-            "Middleware extracts tenant_id from JWT on every request",
+            "All SQLAlchemy models inherit TimestampedBase with standard columns",
+            "No tenant_id or user_id filtering in repository queries",
+            "Session-based context for conversation tracking",
         ],
         "priority": "P0",
         "test_ids": [],
@@ -118,7 +118,7 @@ REQUIREMENTS = [
             "6 domains scaffolded: health, finance, productivity, relationships, learning, home",
             "Each domain has manifest.py with MANIFEST dict",
             "Manifest declares event_types, tools, agents, memory_categories",
-            "Domains can be activated/deactivated per tenant via DomainRegistry",
+            "Domains can be activated/deactivated via DomainRegistry",
         ],
         "priority": "P0",
         "test_ids": [],

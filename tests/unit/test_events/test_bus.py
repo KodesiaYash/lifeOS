@@ -24,8 +24,6 @@ from src.events.schemas import PlatformEvent
 def _make_event(event_type: str = "test.event", **kwargs) -> PlatformEvent:
     """Helper to create a PlatformEvent with minimal required fields."""
     return PlatformEvent(
-        tenant_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
         event_type=event_type,
         event_category=event_type.split(".")[0],
         payload=kwargs.get("payload", {}),
@@ -155,8 +153,6 @@ class TestPlatformEvent:
         """Optional correlation_id is preserved."""
         cid = uuid.uuid4()
         e = PlatformEvent(
-            tenant_id=uuid.uuid4(),
-            user_id=uuid.uuid4(),
             event_type="test.corr",
             event_category="test",
             correlation_id=cid,

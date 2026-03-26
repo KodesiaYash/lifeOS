@@ -7,7 +7,7 @@ Foundation utilities used by all other modules. This package has **zero dependen
 | File | Purpose |
 |------|---------|
 | `database.py` | Async SQLAlchemy engine, session factory, `get_db` FastAPI dependency |
-| `base_model.py` | `Base` declarative base and `TenantAwareBase` with standard columns (id, tenant_id, created_at, updated_at, deleted_at) |
+| `base_model.py` | `Base` declarative base and `TimestampedBase` with standard columns (id, created_at, updated_at, deleted_at) |
 | `pagination.py` | `PaginationParams` and `PaginatedResult` for list endpoints |
 | `crypto.py` | AES-256 encrypt/decrypt via Fernet (for connector credentials, secrets) |
 | `time.py` | Timezone-aware datetime helpers (utc_now, to_user_tz, start/end of day) |
@@ -16,7 +16,7 @@ Foundation utilities used by all other modules. This package has **zero dependen
 
 ```python
 from src.shared.database import get_db
-from src.shared.base_model import TenantAwareBase
+from src.shared.base_model import TimestampedBase
 from src.shared.time import utc_now
 ```
 

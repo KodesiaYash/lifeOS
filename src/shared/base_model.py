@@ -48,5 +48,3 @@ class TimestampedBase(Base):
     )
 
 
-# Alias for backward compatibility during migration
-TenantAwareBase = TimestampedBase

@@ -21,8 +21,6 @@ from src.events.schemas import PlatformEvent
 
 def _event(event_type: str, payload: dict | None = None, correlation_id=None) -> PlatformEvent:
     return PlatformEvent(
-        tenant_id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
         event_type=event_type,
         event_category=event_type.split(".")[0],
         payload=payload or {},
