@@ -1,6 +1,8 @@
 """
 Background memory consolidation jobs.
 Converts ephemeral session data into long-term memories.
+
+Single-user mode: No tenant_id or user_id needed.
 """
 import uuid
 
@@ -32,10 +34,8 @@ class MemoryConsolidator:
 
     async def summarize_session(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         conversation_id: uuid.UUID | None = None,
-        session_id: uuid.UUID | None = None,
+        session_id: str | None = None,
     ) -> ConversationSummary | None:
         """
         Summarize a conversation session and store as a ConversationSummary.
@@ -43,7 +43,7 @@ class MemoryConsolidator:
 
         TODO: Implement LLM-based summarization.
         """
-        message_history = await self.short_term.get_message_history(tenant_id, user_id)
+        message_history = await self.short_term.get_message_history(session_id)
         if not message_history:
             return None
 
@@ -52,8 +52,6 @@ class MemoryConsolidator:
         summary_text = f"Conversation with {turn_count} turns. Topics discussed: [pending LLM summarization]"
 
         summary = ConversationSummary(
-            tenant_id=tenant_id,
-            user_id=user_id,
             conversation_id=conversation_id,
             session_id=session_id,
             summary=summary_text,
@@ -71,11 +69,7 @@ class MemoryConsolidator:
         )
         return summary
 
-    async def extract_patterns(
-        self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
-    ) -> list[SemanticMemoryModel]:
+    async def extract_patterns(self) -> list[SemanticMemoryModel]:
         """
         Analyze accumulated facts and summaries to extract behavioral patterns.
 
@@ -85,18 +79,14 @@ class MemoryConsolidator:
         - "User exercises more on weekdays"
         - "User prefers concise responses"
         """
-        logger.info("pattern_extraction_stub", tenant_id=str(tenant_id), user_id=str(user_id))
+        logger.info("pattern_extraction_stub")
         return []
 
-    async def deduplicate_memories(
-        self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
-    ) -> int:
+    async def deduplicate_memories(self) -> int:
         """
         Find and merge semantically similar memories.
 
         TODO: Implement deduplication via embedding similarity.
         """
-        logger.info("memory_dedup_stub", tenant_id=str(tenant_id), user_id=str(user_id))
+        logger.info("memory_dedup_stub")
         return 0

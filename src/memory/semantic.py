@@ -1,9 +1,9 @@
 """
 Long-term semantic memory: pgvector-backed semantic store.
 Stores summaries, patterns, insights, and behavioral observations with embeddings.
-"""
-import uuid
 
+Single-user mode: No tenant_id or user_id needed.
+"""
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,15 +25,11 @@ class SemanticMemoryStore:
 
     async def store(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         data: SemanticMemoryCreate,
         embedding: list[float] | None = None,
     ) -> SemanticMemoryModel:
         """Store a semantic memory with an optional pre-computed embedding."""
         memory = SemanticMemoryModel(
-            tenant_id=tenant_id,
-            user_id=user_id,
             memory_type=data.memory_type,
             content=data.content,
             embedding=embedding,
@@ -54,16 +50,12 @@ class SemanticMemoryStore:
 
     async def search(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         query_embedding: list[float],
         limit: int = 10,
         domain: str | None = None,
     ) -> list[SemanticMemoryModel]:
         """Search semantic memories by embedding similarity."""
         results = await self.repo.search_by_embedding(
-            tenant_id=tenant_id,
-            user_id=user_id,
             embedding=query_embedding,
             limit=limit,
             domain=domain,

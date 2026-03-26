@@ -1,9 +1,9 @@
 """
 Memory packet assembly: gather relevant context from all memory layers
 and assemble into a bounded MemoryPacket for LLM calls.
-"""
-import uuid
 
+Single-user mode: No tenant_id or user_id needed.
+"""
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,11 +39,10 @@ class MemoryAssembler:
 
     async def assemble(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         query_embedding: list[float] | None = None,
         domain: str | None = None,
         token_budget: int = DEFAULT_TOKEN_BUDGET,
+        session_id: str | None = None,
     ) -> MemoryPacket:
         """
         Assemble a memory packet with relevant context from all layers.
@@ -53,7 +52,7 @@ class MemoryAssembler:
         remaining = token_budget
 
         # 1. Session context (short-term memory)
-        session_state = await self.short_term.get_session(tenant_id, user_id)
+        session_state = await self.short_term.get_session(session_id)
         if session_state:
             packet.session_context = {
                 k: v for k, v in session_state.items()
@@ -62,7 +61,7 @@ class MemoryAssembler:
             remaining -= 200  # Estimate for session context
 
         # 2. Structured facts (highest priority — user preferences, goals, etc.)
-        facts = await self.facts_repo.list_all_active(tenant_id, user_id, domain)
+        facts = await self.facts_repo.list_all_active(domain)
         for fact in facts:
             if remaining < TOKENS_PER_FACT:
                 break
@@ -73,8 +72,6 @@ class MemoryAssembler:
         if query_embedding and remaining > TOKENS_PER_SEMANTIC:
             max_semantic = min(10, remaining // TOKENS_PER_SEMANTIC)
             semantic_results = await self.semantic_repo.search_by_embedding(
-                tenant_id=tenant_id,
-                user_id=user_id,
                 embedding=query_embedding,
                 limit=max_semantic,
                 domain=domain,
@@ -88,11 +85,7 @@ class MemoryAssembler:
         # 4. Recent conversation summaries
         if remaining > TOKENS_PER_SUMMARY:
             max_summaries = min(5, remaining // TOKENS_PER_SUMMARY)
-            summaries = await self.summaries_repo.list_recent(
-                tenant_id=tenant_id,
-                user_id=user_id,
-                limit=max_summaries,
-            )
+            summaries = await self.summaries_repo.list_recent(limit=max_summaries)
             for s in summaries:
                 if remaining < TOKENS_PER_SUMMARY:
                     break

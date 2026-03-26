@@ -1,6 +1,8 @@
 """
 Short-term memory: Redis-backed session state.
 Stores ephemeral conversation context that expires after inactivity.
+
+Single-user mode: No tenant_id or user_id needed.
 """
 import json
 import uuid
@@ -13,6 +15,7 @@ from src.config import settings
 logger = structlog.get_logger()
 
 SESSION_TTL_SECONDS = 7200  # 2 hours
+DEFAULT_SESSION_KEY = "lifeos:session:default"
 
 
 class ShortTermMemory:
@@ -29,65 +32,56 @@ class ShortTermMemory:
             self._redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
         return self._redis
 
-    def _session_key(self, tenant_id: uuid.UUID, user_id: uuid.UUID) -> str:
-        return f"{tenant_id}:session:{user_id}"
+    def _session_key(self, session_id: str | None = None) -> str:
+        if session_id:
+            return f"lifeos:session:{session_id}"
+        return DEFAULT_SESSION_KEY
 
-    async def get_session(
-        self, tenant_id: uuid.UUID, user_id: uuid.UUID
-    ) -> dict:
-        """Get the current session state for a user."""
+    async def get_session(self, session_id: str | None = None) -> dict:
+        """Get the current session state."""
         redis = await self._get_redis()
-        key = self._session_key(tenant_id, user_id)
+        key = self._session_key(session_id)
         data = await redis.get(key)
         if data is None:
             return {}
         return json.loads(data)
 
-    async def set_session(
-        self, tenant_id: uuid.UUID, user_id: uuid.UUID, state: dict
-    ) -> None:
+    async def set_session(self, state: dict, session_id: str | None = None) -> None:
         """Set the session state, resetting the TTL."""
         redis = await self._get_redis()
-        key = self._session_key(tenant_id, user_id)
+        key = self._session_key(session_id)
         await redis.set(key, json.dumps(state, default=str), ex=SESSION_TTL_SECONDS)
 
-    async def update_session(
-        self, tenant_id: uuid.UUID, user_id: uuid.UUID, updates: dict
-    ) -> dict:
+    async def update_session(self, updates: dict, session_id: str | None = None) -> dict:
         """Merge updates into the existing session state."""
-        state = await self.get_session(tenant_id, user_id)
+        state = await self.get_session(session_id)
         state.update(updates)
-        await self.set_session(tenant_id, user_id, state)
+        await self.set_session(state, session_id)
         return state
 
-    async def clear_session(
-        self, tenant_id: uuid.UUID, user_id: uuid.UUID
-    ) -> None:
+    async def clear_session(self, session_id: str | None = None) -> None:
         """Clear the session state."""
         redis = await self._get_redis()
-        key = self._session_key(tenant_id, user_id)
+        key = self._session_key(session_id)
         await redis.delete(key)
 
     async def add_to_message_history(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         role: str,
         content: str,
         max_messages: int = 20,
+        session_id: str | None = None,
     ) -> None:
         """Append a message to the session's recent message history."""
-        state = await self.get_session(tenant_id, user_id)
+        state = await self.get_session(session_id)
         history = state.get("message_history", [])
         history.append({"role": role, "content": content})
         if len(history) > max_messages:
             history = history[-max_messages:]
         state["message_history"] = history
-        await self.set_session(tenant_id, user_id, state)
+        await self.set_session(state, session_id)
 
-    async def get_message_history(
-        self, tenant_id: uuid.UUID, user_id: uuid.UUID
-    ) -> list[dict]:
+    async def get_message_history(self, session_id: str | None = None) -> list[dict]:
         """Get the recent message history from the session."""
-        state = await self.get_session(tenant_id, user_id)
+        state = await self.get_session(session_id)
         return state.get("message_history", [])

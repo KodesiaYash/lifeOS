@@ -1,9 +1,9 @@
 """
 Long-term structured memory: SQL-backed fact store.
 Stores discrete, queryable facts about the user (preferences, goals, habits, etc.).
-"""
-import uuid
 
+Single-user mode: No tenant_id or user_id needed.
+"""
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,21 +24,14 @@ class StructuredMemory:
     def __init__(self, session: AsyncSession) -> None:
         self.repo = MemoryFactRepository(session)
 
-    async def remember(
-        self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
-        data: MemoryFactCreate,
-    ) -> MemoryFact:
+    async def remember(self, data: MemoryFactCreate) -> MemoryFact:
         """
         Store a fact. If a fact with the same key already exists,
         supersede it with the new value.
         """
-        existing = await self.repo.get_by_key(tenant_id, user_id, data.key)
+        existing = await self.repo.get_by_key(data.key)
 
         fact = MemoryFact(
-            tenant_id=tenant_id,
-            user_id=user_id,
             domain=data.domain,
             category=data.category,
             key=data.key,
@@ -57,30 +50,18 @@ class StructuredMemory:
 
         return fact
 
-    async def recall(
-        self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
-        key: str,
-    ) -> MemoryFact | None:
+    async def recall(self, key: str) -> MemoryFact | None:
         """Recall a specific fact by key."""
-        return await self.repo.get_by_key(tenant_id, user_id, key)
+        return await self.repo.get_by_key(key)
 
     async def recall_by_category(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         category: str,
         domain: str | None = None,
     ) -> list[MemoryFact]:
         """Recall all facts in a category."""
-        return await self.repo.list_by_category(tenant_id, user_id, category, domain)
+        return await self.repo.list_by_category(category, domain)
 
-    async def recall_all(
-        self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
-        domain: str | None = None,
-    ) -> list[MemoryFact]:
-        """Recall all active facts for a user."""
-        return await self.repo.list_all_active(tenant_id, user_id, domain)
+    async def recall_all(self, domain: str | None = None) -> list[MemoryFact]:
+        """Recall all active facts."""
+        return await self.repo.list_all_active(domain)

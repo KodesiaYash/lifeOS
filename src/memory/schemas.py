@@ -19,8 +19,6 @@ class MemoryFactCreate(BaseModel):
 
 class MemoryFactRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     domain: str | None
     category: str
     key: str
@@ -46,8 +44,6 @@ class SemanticMemoryCreate(BaseModel):
 
 class SemanticMemoryRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     memory_type: str
     content: str
     source_domain: str | None
