@@ -1,16 +1,15 @@
-"""
-Unit tests for src/shared/time.py — time utilities.
+"""Unit tests for src/shared/time.py — time utilities.
 
 Tests:
   - test_utc_now_is_timezone_aware: utc_now() always returns tz-aware datetime
   - test_utc_now_is_utc: timezone is specifically UTC (not just any tz)
-  - test_format_iso_contains_date: ISO format includes date component
-  - test_format_iso_contains_time: ISO format includes time component
-  - test_format_iso_roundtrip: Output can be parsed back to the same datetime
+  - test_to_user_tz: Convert UTC to user timezone
+  - test_start_of_day: Get start of day in timezone
+  - test_end_of_day: Get end of day in timezone
 """
 from datetime import datetime, timezone
 
-from src.shared.time import format_iso, utc_now
+from src.shared.time import utc_now, to_user_tz, start_of_day, end_of_day
 
 
 class TestUtcNow:
@@ -27,23 +26,44 @@ class TestUtcNow:
         assert now.tzinfo == timezone.utc
 
 
-class TestFormatIso:
-    """Verify ISO 8601 formatting."""
+class TestToUserTz:
+    """Verify timezone conversion."""
 
-    def test_format_iso_contains_date(self):
-        """Output includes YYYY-MM-DD."""
+    def test_to_user_tz_default_utc(self):
+        """Default timezone is UTC."""
         dt = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
-        assert "2024-01-15" in format_iso(dt)
+        result = to_user_tz(dt)
+        assert result.tzinfo is not None
+        assert result.hour == 10
 
-    def test_format_iso_contains_time(self):
-        """Output includes HH:MM."""
-        dt = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
-        assert "10:30" in format_iso(dt)
+    def test_to_user_tz_new_york(self):
+        """Convert UTC to America/New_York."""
+        dt = datetime(2024, 1, 15, 15, 0, 0, tzinfo=timezone.utc)
+        result = to_user_tz(dt, "America/New_York")
+        assert result.tzinfo is not None
+        # In January, NY is UTC-5
+        assert result.hour == 10
 
-    def test_format_iso_roundtrip(self):
-        """ISO string can be parsed back to equivalent datetime."""
-        dt = datetime(2024, 6, 15, 14, 30, 0, tzinfo=timezone.utc)
-        iso_str = format_iso(dt)
-        parsed = datetime.fromisoformat(iso_str)
-        assert parsed.year == dt.year
-        assert parsed.hour == dt.hour
+
+class TestStartOfDay:
+    """Verify start of day calculation."""
+
+    def test_start_of_day_utc(self):
+        """Start of day in UTC."""
+        dt = datetime(2024, 1, 15, 14, 30, 0, tzinfo=timezone.utc)
+        result = start_of_day(dt, "UTC")
+        assert result.hour == 0
+        assert result.minute == 0
+        assert result.second == 0
+
+
+class TestEndOfDay:
+    """Verify end of day calculation."""
+
+    def test_end_of_day_utc(self):
+        """End of day in UTC."""
+        dt = datetime(2024, 1, 15, 14, 30, 0, tzinfo=timezone.utc)
+        result = end_of_day(dt, "UTC")
+        assert result.hour == 23
+        assert result.minute == 59
+        assert result.second == 59

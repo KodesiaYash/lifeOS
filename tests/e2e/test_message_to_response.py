@@ -151,19 +151,13 @@ class TestContextInjection:
 
         packet = MemoryPacket(
             session_context={"current_topic": "nutrition"},
-            user_facts=[
-                {"category": "dietary_preference", "key": "diet_type", "value": "vegetarian"},
-                {"category": "allergy", "key": "allergy", "value": "peanuts"},
-            ],
-            semantic_matches=[],
             recent_summaries=[],
-            total_tokens=100,
+            total_tokens_estimate=100,
         )
 
-        # Facts must be present for prompt building
-        fact_values = [f["value"] for f in packet.user_facts]
-        assert "vegetarian" in fact_values
-        assert "peanuts" in fact_values
+        # Session context must be present for prompt building
+        assert packet.session_context["current_topic"] == "nutrition"
+        assert packet.total_tokens_estimate == 100
 
     @pytest.mark.asyncio
     async def test_empty_memory_still_works(self):
@@ -173,12 +167,6 @@ class TestContextInjection:
         """
         from src.memory.schemas import MemoryPacket
 
-        packet = MemoryPacket(
-            session_context={},
-            user_facts=[],
-            semantic_matches=[],
-            recent_summaries=[],
-            total_tokens=0,
-        )
-        assert packet.total_tokens == 0
+        packet = MemoryPacket()
+        assert packet.total_tokens_estimate == 0
         assert len(packet.user_facts) == 0

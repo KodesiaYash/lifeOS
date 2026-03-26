@@ -69,37 +69,27 @@ class TestMemoryPacket:
     """Verify the assembled memory packet structure."""
 
     def test_memory_packet_structure(self):
-        """All four sections present."""
+        """All sections present with defaults."""
         packet = MemoryPacket(
             session_context={"topic": "nutrition"},
-            user_facts=[{"key": "diet", "value": "vegan"}],
-            semantic_matches=["match1"],
             recent_summaries=["summary1"],
-            total_tokens=200,
+            total_tokens_estimate=200,
         )
         assert packet.session_context["topic"] == "nutrition"
-        assert len(packet.user_facts) == 1
-        assert len(packet.semantic_matches) == 1
+        assert len(packet.user_facts) == 0  # defaults to empty
+        assert len(packet.semantic_memories) == 0  # defaults to empty
         assert len(packet.recent_summaries) == 1
 
     def test_memory_packet_token_count(self):
         """Token budget tracking works."""
         packet = MemoryPacket(
-            session_context={},
-            user_facts=[],
-            semantic_matches=[],
-            recent_summaries=[],
-            total_tokens=150,
+            total_tokens_estimate=150,
         )
-        assert packet.total_tokens == 150
+        assert packet.total_tokens_estimate == 150
 
     def test_memory_packet_empty(self):
         """Empty packet is valid — new user with no history."""
-        packet = MemoryPacket(
-            session_context={},
-            user_facts=[],
-            semantic_matches=[],
-            recent_summaries=[],
-            total_tokens=0,
-        )
-        assert packet.total_tokens == 0
+        packet = MemoryPacket()
+        assert packet.total_tokens_estimate == 0
+        assert packet.user_facts == []
+        assert packet.semantic_memories == []

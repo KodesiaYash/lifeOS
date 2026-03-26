@@ -70,5 +70,5 @@ class TestTriggerType:
     def test_manual(self):
         assert TriggerType.MANUAL == "manual"
 
-    def test_api(self):
-        assert TriggerType.API == "api"
+    def test_webhook(self):
+        assert TriggerType.WEBHOOK == "webhook"
