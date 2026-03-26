@@ -35,8 +35,7 @@ Thumbs.db
 htmlcov/
 .mypy_cache/
 
-# Alembic
-alembic/versions/*.py
+# Alembic - keep .gitkeep but track migration files
 !alembic/versions/.gitkeep
 
 # Logs

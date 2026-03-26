@@ -376,6 +376,39 @@ jobs:
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
+  llm-connectivity:
+    name: LLM Connectivity Check
+    runs-on: ubuntu-latest
+    needs: setup
+    # This job is optional - will pass if no LLM keys are configured
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore cached venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: Verify LLM Connectivity
+        run: |
+          source .venv/bin/activate
+          python -m scripts.verify_llm
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+
   all-tests-passed:
     name: All Tests Passed
     runs-on: ubuntu-latest
