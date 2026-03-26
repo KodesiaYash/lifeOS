@@ -8,6 +8,17 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.shared.base_model import Base
 
+# Import all models so Alembic can discover them
+from src.core.models import Settings, DomainRegistry  # noqa: F401
+from src.memory.models import MemoryFact, SemanticMemory, ConversationSummary  # noqa: F401
+from src.knowledge.models import KnowledgeDocument, KnowledgeChunk, KnowledgeRelation  # noqa: F401
+from src.communication.models import ChannelAccount, ChannelIdentity, Conversation, Message  # noqa: F401
+from src.events.models import Event  # noqa: F401
+from src.orchestration.models import WorkflowDefinition, WorkflowExecution, WorkflowStepExecution  # noqa: F401
+from src.scheduling.models import ScheduledJob, BackgroundTask  # noqa: F401
+from src.connectors.models import ConnectorDefinition, ConnectorInstance, SyncLog  # noqa: F401
+from src.agents.models import AgentDefinition, AgentExecution  # noqa: F401
+
 # Alembic Config object
 config = context.config
 
