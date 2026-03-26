@@ -17,6 +17,8 @@ logger = structlog.get_logger()
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application startup and shutdown lifecycle."""
     # --- Startup ---
+    import logging
+    log_level = getattr(logging, settings.LOG_LEVEL.upper(), logging.DEBUG)
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
@@ -24,9 +26,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.dev.ConsoleRenderer() if settings.DEBUG else structlog.processors.JSONRenderer(),
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            structlog.get_level_from_name(settings.LOG_LEVEL)
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(log_level),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
         cache_logger_on_first_use=True,
@@ -34,13 +34,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("starting_app", app_name=settings.APP_NAME, env=settings.APP_ENV)
 
     # --- Load domain plugins (auto-wires tools, agents, events, memory, routers) ---
-    from src.agents.registry import AgentRegistry
+    from src.agents.registry import agent_registry
     from src.domains.loader import load_domain_plugins, get_loaded_plugins
     from src.events.bus import event_bus
-    from src.kernel.tool_registry import ToolRegistry
-
-    tool_registry = ToolRegistry()
-    agent_registry = AgentRegistry()
+    from src.kernel.tool_registry import tool_registry
 
     wiring_report = await load_domain_plugins(
         app=app,
@@ -68,11 +65,15 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title=settings.APP_NAME,
         version="0.1.0",
-        description="AI-native multi-tenant life operating system",
+        description="AI-native personal life operating system",
         lifespan=lifespan,
         docs_url="/docs" if not settings.is_production else None,
         redoc_url="/redoc" if not settings.is_production else None,
     )
+
+    # Request context middleware for logging
+    from src.core.middleware import RequestContextMiddleware
+    application.add_middleware(RequestContextMiddleware)
 
     # CORS
     application.add_middleware(

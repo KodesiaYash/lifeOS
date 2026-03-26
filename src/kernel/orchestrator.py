@@ -1,6 +1,8 @@
 """
 Global orchestrator: the central brain that processes every inbound message.
 Routes through: intent classification → memory assembly → retrieval → tool execution → response generation.
+
+Single-user mode: No tenant_id or user_id needed.
 """
 import uuid
 
@@ -24,19 +26,17 @@ class OrchestratorContext:
 
     def __init__(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         user_message: str,
         conversation_id: uuid.UUID | None = None,
         channel_type: str = "rest_api",
         correlation_id: uuid.UUID | None = None,
+        session_id: str | None = None,
     ) -> None:
-        self.tenant_id = tenant_id
-        self.user_id = user_id
         self.user_message = user_message
         self.conversation_id = conversation_id
         self.channel_type = channel_type
         self.correlation_id = correlation_id or uuid.uuid4()
+        self.session_id = session_id
 
         # Populated during orchestration
         self.intent: dict | None = None
@@ -82,17 +82,14 @@ class GlobalOrchestrator:
 
             # 2. Assemble memory
             memory_packet = await self.memory_assembler.assemble(
-                tenant_id=ctx.tenant_id,
-                user_id=ctx.user_id,
                 domain=ctx.intent.get("domain"),
+                session_id=ctx.session_id,
             )
             ctx.memory_context = memory_packet.model_dump()
 
             # 3. Retrieve relevant knowledge
             retrieval_response = await self.retrieval.retrieve(
                 RetrievalRequest(
-                    tenant_id=ctx.tenant_id,
-                    user_id=ctx.user_id,
                     query=ctx.user_message,
                     domains=[ctx.intent["domain"]] if ctx.intent.get("domain") else None,
                     strategy=RetrievalStrategy.HYBRID,
@@ -109,10 +106,10 @@ class GlobalOrchestrator:
 
             # 6. Update short-term memory
             await self.short_term.add_to_message_history(
-                ctx.tenant_id, ctx.user_id, "user", ctx.user_message
+                "user", ctx.user_message, session_id=ctx.session_id
             )
             await self.short_term.add_to_message_history(
-                ctx.tenant_id, ctx.user_id, "assistant", ctx.response_text
+                "assistant", ctx.response_text, session_id=ctx.session_id
             )
 
             logger.info(
@@ -149,7 +146,7 @@ class GlobalOrchestrator:
         system_prompt = self._build_system_prompt(ctx)
 
         # Build messages
-        message_history = await self.short_term.get_message_history(ctx.tenant_id, ctx.user_id)
+        message_history = await self.short_term.get_message_history(ctx.session_id)
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(message_history[-10:])  # Last 10 turns
         messages.append({"role": "user", "content": ctx.user_message})
@@ -212,8 +209,6 @@ class GlobalOrchestrator:
     async def _emit_events(self, ctx: OrchestratorContext) -> None:
         """Emit platform events for this interaction."""
         event = PlatformEvent(
-            tenant_id=ctx.tenant_id,
-            user_id=ctx.user_id,
             event_type="system.message_processed",
             event_category="system",
             correlation_id=ctx.correlation_id,
