@@ -59,17 +59,12 @@ class AgentExecutionRepository:
             .values(**values)
         )
 
-    async def list_by_user(
+    async def list_recent(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         agent_type: str | None = None,
         limit: int = 20,
     ) -> list[AgentExecution]:
-        stmt = select(AgentExecution).where(
-            AgentExecution.tenant_id == tenant_id,
-            AgentExecution.user_id == user_id,
-        )
+        stmt = select(AgentExecution)
         if agent_type:
             stmt = stmt.where(AgentExecution.agent_type == agent_type)
         stmt = stmt.order_by(AgentExecution.created_at.desc()).limit(limit)

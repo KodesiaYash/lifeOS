@@ -1,14 +1,16 @@
 """
 SQLAlchemy models for the agent system.
+
+Single-user mode: No tenant_id or user_id references.
 """
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, text
+from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.shared.base_model import Base, TenantAwareBase
+from src.shared.base_model import Base, TimestampedBase
 
 
 class AgentDefinition(Base):
@@ -32,11 +34,10 @@ class AgentDefinition(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
 
 
-class AgentExecution(TenantAwareBase):
+class AgentExecution(TimestampedBase):
     """Runtime execution record for an agent invocation."""
     __tablename__ = "agent_executions"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=False, index=True)
     agent_type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     correlation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default="pending")

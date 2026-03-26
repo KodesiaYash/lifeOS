@@ -41,8 +41,6 @@ class AgentDefinitionRead(BaseModel):
 
 class AgentExecutionRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     agent_type: str
     status: str
     input_data: dict
