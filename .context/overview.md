@@ -11,9 +11,9 @@
 
 ## What It Is
 
-An AI-powered multi-tenant life management platform. Users interact via WhatsApp/Telegram/REST. The AI understands intent, routes to domain-specific agents (health, finance, productivity, relationships, learning, home), calls tools, remembers context across conversations, and provides personalised responses.
+An AI-powered **single-user** life management platform designed for self-hosting. Users interact via WhatsApp/Telegram/REST. The AI understands intent, routes to domain-specific agents (health, finance, productivity, relationships, learning, home), calls tools, remembers context across conversations, and provides personalised responses.
 
-Built as a **modular monolith** — one deployable with clean module boundaries, event-driven communication, and a plugin architecture for domains.
+Built as a **modular monolith** — one deployable with clean module boundaries, event-driven communication, and a plugin architecture for domains. No tenant/user management needed — the app runs for whoever is running it.
 
 ## Tech Stack
 
@@ -29,7 +29,7 @@ Python 3.11+, FastAPI, SQLAlchemy 2.0 async, PostgreSQL 16 + pgvector, Redis 7, 
 src/
 ├── config.py, main.py, dependencies.py     ← App entry, DI
 ├── shared/          ← DB, crypto, pagination, time
-├── core/            ← Tenants, users, workspaces
+├── core/            ← Settings, domain registry
 ├── events/          ← Event bus (pub/sub + wildcard)
 ├── communication/   ← WhatsApp/Telegram/REST adapters
 ├── memory/          ← Short-term (Redis), structured (SQL), semantic (pgvector)

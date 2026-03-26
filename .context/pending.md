@@ -9,7 +9,7 @@ All 18 steps done:
 1. Project skeleton (pyproject.toml, Dockerfile, docker-compose.yml, .env.example, alembic)
 2. Shared utilities (database, base_model, crypto, pagination, time)
 3. Config & app entry (config.py, main.py with domain plugin loading, dependencies.py)
-4. Core module (tenants, users, workspaces, domain registry)
+4. Core module (settings, domain registry) — **single-user mode, no tenants/users**
 5. Events module (event bus pub/sub, event log)
 6. Communication module (WhatsApp/Telegram/REST adapters, conversations, messages)
 7. Memory module (short-term Redis, structured SQL, semantic pgvector, assembler, consolidation)
@@ -22,8 +22,19 @@ All 18 steps done:
 14. Domain plugin system (DomainPlugin protocol, loader, all 6 domains with stub handlers)
 15. Connectors scaffold (base connector, service, models)
 16. Seed data script (scripts/seed.py)
-17. Full test suite (unit/integration/e2e/drift/arch + requirements)
+17. Full test suite (unit/integration/e2e/drift/arch + requirements) — **335 tests passing**
 18. Documentation (ARCHITECTURE.md, per-module READMEs, domain guide, tests README, LLM_CONTEXT.md)
+
+## Phase 0.5 — CI/CD + DevOps (COMPLETE)
+
+- ✅ GitHub Actions CI pipeline (`.github/workflows/ci.yml`)
+- ✅ Jobs: lint, unit-tests, integration-tests, e2e-tests, arch-tests, migration-check, llm-connectivity
+- ✅ Venv caching for faster builds
+- ✅ Initial Alembic migration committed
+- ✅ Pre-push script (`scripts/pre_push.sh`)
+- ✅ LLM verification script (`scripts/verify_llm.py`)
+- ✅ Multi-provider LLM config (OpenAI, Anthropic, Gemini, Groq, Mistral)
+- ✅ pgAdmin + RedisInsight in docker-compose.yml
 
 ## Phase 1 — PENDING (Domain Implementations)
 
@@ -72,4 +83,4 @@ Replace stub handlers with real logic. Per domain:
 - Tag all existing tests with `@pytest.mark.req()` for full traceability
 - Record E2E cassettes for real LLM interactions
 - Alembic migrations for domain models
-- CI/CD pipeline setup (GitHub Actions)
+- ~~CI/CD pipeline setup (GitHub Actions)~~ ✅ DONE in Phase 0.5

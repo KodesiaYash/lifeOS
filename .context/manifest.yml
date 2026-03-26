@@ -1,7 +1,7 @@
 # AI Life OS — Structured Project Manifest
 # Machine-readable project map for LLM context injection (~200 tokens).
 # Always include this file when starting a new LLM session.
-# Last updated: 2026-03-25
+# Last updated: 2026-03-26
 
 project:
   name: AI Life OS
@@ -25,7 +25,7 @@ stack:
 
 modules:
   - {name: shared, path: src/shared/, status: complete, desc: "DB, crypto, pagination, time"}
-  - {name: core, path: src/core/, status: complete, desc: "tenants, users, workspaces, domain registry"}
+  - {name: core, path: src/core/, status: complete, desc: "settings, domain registry (single-user mode)"}
   - {name: events, path: src/events/, status: complete, desc: "event bus pub/sub, event log"}
   - {name: communication, path: src/communication/, status: complete, desc: "WhatsApp/Telegram/REST adapters"}
   - {name: memory, path: src/memory/, status: complete, desc: "short-term Redis, structured SQL, semantic pgvector"}
@@ -82,6 +82,7 @@ totals:
   memory_categories: 29
   requirements: 41
   test_files: 22
+  tests_passing: 335
 
 tests:
   tiers: [unit, integration, e2e, drift, arch]
@@ -109,3 +110,14 @@ key_files:
   arch_domain_integration: tests/arch/test_domain_integration.py
   architecture_doc: ARCHITECTURE.md
   llm_context: LLM_CONTEXT.md
+  ci_workflow: .github/workflows/ci.yml
+  pre_push_script: scripts/pre_push.sh
+  llm_verify_script: scripts/verify_llm.py
+  initial_migration: alembic/versions/6a88d45cecd6_initial_schema_for_single_user_mode.py
+
+ci_cd:
+  platform: github-actions
+  jobs: [setup, lint, unit-tests, integration-tests, e2e-tests, arch-tests, migration-check, llm-connectivity]
+  caching: venv-cached
+  db_image: pgvector/pgvector:pg16
+  redis_image: redis:7-alpine

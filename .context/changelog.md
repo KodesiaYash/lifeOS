@@ -49,3 +49,42 @@
 
 - Created `.context/` module with manifest.yml + chunked topic files
 - Files: manifest.yml, overview.md, architecture.md, domains.md, tests.md, conventions.md, pending.md, changelog.md, TODO.md, README.md
+
+## Session 3 — Single-User Mode + CI Pipeline (2026-03-26)
+
+**Single-user mode refactor:**
+
+- Removed all tenant/user/workspace models and references from codebase
+- Updated `scripts/seed.py` to use `Settings` instead of `Tenant/User/Workspace`
+- Removed `TenantAwareBase` alias from `src/shared/base_model.py`
+- Updated all READMEs (core, agents, events, shared) for single-user mode
+- Updated tests to remove `tenant_id`/`user_id` from event and retrieval schemas
+- Updated `tests/requirements/platform.py` REQ-PLAT-001 to "Single-User Data Model"
+
+**CI/CD pipeline (GitHub Actions):**
+
+- Created `.github/workflows/ci.yml` with jobs: setup, lint, unit-tests, integration-tests, e2e-tests, arch-tests, migration-check, llm-connectivity
+- Implemented venv caching to speed up CI (~3x faster)
+- Added migration-check job that fails if models change without committed migration
+- Added llm-connectivity job (optional) to verify LLM provider connections
+
+**Database migrations:**
+
+- Fixed `.gitignore` to track Alembic migration files
+- Committed initial migration `6a88d45cecd6_initial_schema_for_single_user_mode.py`
+- Added `CREATE EXTENSION IF NOT EXISTS vector` to migration for pgvector support
+
+**Developer tooling:**
+
+- Created `scripts/verify_llm.py` — tests all configured LLM providers with minimal tokens
+- Created `scripts/pre_push.sh` — runs all CI checks locally before pushing
+
+**Configuration updates:**
+
+- Added multi-provider LLM support in `src/config.py` and `.env.example` (OpenAI, Anthropic, Gemini, Groq, Mistral, Azure)
+- Added pgAdmin and RedisInsight services to `docker-compose.yml` for data visualization
+
+**Documentation updates:**
+
+- Updated `README.md`, `LLM_CONTEXT.md`, `GAP_ANALYSIS.md` for single-user mode
+- Marked resolved issues in `GAP_ANALYSIS.md`
