@@ -1,5 +1,7 @@
 """
 Communication service: conversation management, identity resolution, idempotency.
+
+Single-user mode: No tenant_id needed.
 """
 import uuid
 
@@ -28,7 +30,6 @@ class CommunicationService:
 
     async def process_inbound(
         self,
-        tenant_id: uuid.UUID,
         channel_account_id: uuid.UUID,
         event: NormalizedInboundEvent,
     ) -> Message | None:
@@ -41,28 +42,24 @@ class CommunicationService:
         5. Return the stored message (or None if duplicate)
         """
         # 1. Dedup check
-        if await self.messages.exists_by_idempotency_key(tenant_id, event.idempotency_key):
+        if await self.messages.exists_by_idempotency_key(event.idempotency_key):
             logger.info("duplicate_message_skipped", idempotency_key=event.idempotency_key)
             return None
 
         # 2. Resolve channel identity
         identity = await self.identities.get_or_create(
-            tenant_id=tenant_id,
             channel_account_id=channel_account_id,
             external_user_id=event.channel_user_id,
         )
 
         # 3. Find or create conversation
         conversation = await self.conversations.get_or_create(
-            tenant_id=tenant_id,
             channel_identity_id=identity.id,
             channel_type=event.channel_type,
-            platform_user_id=identity.platform_user_id,
         )
 
         # 4. Persist message
         message = Message(
-            tenant_id=tenant_id,
             conversation_id=conversation.id,
             direction="inbound",
             content_type=event.content_type,
@@ -88,7 +85,6 @@ class CommunicationService:
 
     async def store_outbound(
         self,
-        tenant_id: uuid.UUID,
         conversation_id: uuid.UUID,
         text: str,
         channel_message_id: str | None = None,
@@ -96,7 +92,6 @@ class CommunicationService:
     ) -> Message:
         """Store an outbound message after it's been sent."""
         message = Message(
-            tenant_id=tenant_id,
             conversation_id=conversation_id,
             direction="outbound",
             content_type="text",

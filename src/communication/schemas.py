@@ -74,9 +74,7 @@ class DeliveryReceipt(BaseModel):
 
 class ConversationRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
     channel_type: str
-    platform_user_id: uuid.UUID | None
     started_at: datetime
     last_message_at: datetime | None
     message_count: int
@@ -86,7 +84,6 @@ class ConversationRead(BaseModel):
 
 class MessageRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
     conversation_id: uuid.UUID
     direction: str
     content_type: str

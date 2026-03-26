@@ -1,5 +1,7 @@
 """
 Database access layer for communication entities.
+
+Single-user mode: No tenant_id filtering.
 """
 import uuid
 from datetime import datetime
@@ -46,7 +48,6 @@ class ChannelIdentityRepository:
 
     async def get_or_create(
         self,
-        tenant_id: uuid.UUID,
         channel_account_id: uuid.UUID,
         external_user_id: str,
         display_name: str | None = None,
@@ -58,7 +59,6 @@ class ChannelIdentityRepository:
             return identity
 
         identity = ChannelIdentity(
-            tenant_id=tenant_id,
             channel_account_id=channel_account_id,
             external_user_id=external_user_id,
             display_name=display_name,
@@ -74,14 +74,11 @@ class ConversationRepository:
 
     async def get_or_create(
         self,
-        tenant_id: uuid.UUID,
         channel_identity_id: uuid.UUID,
         channel_type: str,
-        platform_user_id: uuid.UUID | None = None,
     ) -> Conversation:
         result = await self.session.execute(
             select(Conversation).where(
-                Conversation.tenant_id == tenant_id,
                 Conversation.channel_identity_id == channel_identity_id,
             ).order_by(Conversation.started_at.desc()).limit(1)
         )
@@ -90,10 +87,8 @@ class ConversationRepository:
             return conversation
 
         conversation = Conversation(
-            tenant_id=tenant_id,
             channel_identity_id=channel_identity_id,
             channel_type=channel_type,
-            platform_user_id=platform_user_id,
         )
         self.session.add(conversation)
         await self.session.flush()
@@ -119,12 +114,9 @@ class MessageRepository:
         await self.session.flush()
         return message
 
-    async def exists_by_idempotency_key(
-        self, tenant_id: uuid.UUID, idempotency_key: str
-    ) -> bool:
+    async def exists_by_idempotency_key(self, idempotency_key: str) -> bool:
         result = await self.session.execute(
             select(Message.id).where(
-                Message.tenant_id == tenant_id,
                 Message.idempotency_key == idempotency_key,
             ).limit(1)
         )

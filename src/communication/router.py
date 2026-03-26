@@ -1,12 +1,12 @@
 """
 API endpoints for the communication layer: webhooks and message endpoints.
-"""
-import uuid
 
+Single-user mode: No tenant context required.
+"""
 from fastapi import APIRouter, Request, HTTPException, status
 
 from src.communication.schemas import MessageRead, NormalizedInboundEvent, OutboundMessage
-from src.dependencies import DbSession, TenantId
+from src.dependencies import DbSession
 
 router = APIRouter()
 
@@ -29,8 +29,6 @@ async def whatsapp_webhook(request: Request, db: DbSession) -> dict:
     if event is None:
         return {"status": "ignored"}
 
-    # TODO: Resolve tenant_id and channel_account_id from webhook config
-    # For now, return acknowledgment
     return {"status": "received", "idempotency_key": event.idempotency_key}
 
 
@@ -62,11 +60,10 @@ async def telegram_webhook(request: Request, db: DbSession) -> dict:
 async def send_message_via_rest(
     payload: dict,
     db: DbSession,
-    tenant_id: TenantId,
 ) -> dict:
     """
     REST API message endpoint.
-    Accepts a message from an authenticated user and processes it.
+    Accepts a message and processes it.
     """
     from src.communication.adapters.rest_api import RestApiAdapter
     adapter = RestApiAdapter()

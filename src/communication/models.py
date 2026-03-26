@@ -1,5 +1,7 @@
 """
 SQLAlchemy models for the communication layer.
+
+Single-user mode: No tenant_id or user_id references.
 """
 import uuid
 from datetime import datetime
@@ -8,7 +10,7 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, tex
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.shared.base_model import Base, TenantAwareBase
+from src.shared.base_model import Base, TimestampedBase
 
 
 class Channel(Base):
@@ -23,7 +25,7 @@ class Channel(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
 
 
-class ChannelAccount(TenantAwareBase):
+class ChannelAccount(TimestampedBase):
     __tablename__ = "comm_channel_accounts"
 
     channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_channels.id"), nullable=False)
@@ -34,23 +36,21 @@ class ChannelAccount(TenantAwareBase):
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
-class ChannelIdentity(TenantAwareBase):
+class ChannelIdentity(TimestampedBase):
     __tablename__ = "comm_channel_identities"
 
     channel_account_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_channel_accounts.id"), nullable=False, index=True)
     external_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    platform_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=True, index=True)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
     first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
 
 
-class Conversation(TenantAwareBase):
+class Conversation(TimestampedBase):
     __tablename__ = "comm_conversations"
 
     channel_identity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_channel_identities.id"), nullable=False, index=True)
-    platform_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=True)
     channel_type: Mapped[str] = mapped_column(String(50), nullable=False)
     external_chat_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
@@ -61,13 +61,13 @@ class Conversation(TenantAwareBase):
     messages: Mapped[list["Message"]] = relationship(back_populates="conversation", lazy="selectin")
 
 
-class Message(TenantAwareBase):
+class Message(TimestampedBase):
     __tablename__ = "comm_messages"
 
     conversation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_conversations.id"), nullable=False, index=True)
     direction: Mapped[str] = mapped_column(String(10), nullable=False)
     content_type: Mapped[str] = mapped_column(String(20), nullable=False, server_default="text")
-    text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    body: Mapped[str | None] = mapped_column(Text, nullable=True)
     media_ref: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     media_mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     channel_message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -78,7 +78,7 @@ class Message(TenantAwareBase):
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
 
 
-class MessageEvent(TenantAwareBase):
+class MessageEvent(TimestampedBase):
     __tablename__ = "comm_message_events"
 
     message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
@@ -90,7 +90,7 @@ class MessageEvent(TenantAwareBase):
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
 
 
-class Attachment(TenantAwareBase):
+class Attachment(TimestampedBase):
     __tablename__ = "comm_attachments"
 
     message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
