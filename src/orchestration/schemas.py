@@ -46,7 +46,6 @@ class WorkflowDefinitionCreate(BaseModel):
 
 class WorkflowDefinitionRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
     name: str
     description: str | None
     domain: str | None
@@ -62,8 +61,6 @@ class WorkflowDefinitionRead(BaseModel):
 
 class WorkflowExecutionRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     definition_id: uuid.UUID
     status: str
     current_step: int

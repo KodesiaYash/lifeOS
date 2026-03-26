@@ -1,6 +1,8 @@
 """
 Workflow execution engine: runs workflow definitions step-by-step.
 Supports LLM calls, tool calls, conditions, parallel steps, and event emission.
+
+Single-user mode: No tenant_id or user_id needed.
 """
 import uuid
 from datetime import datetime, timezone
@@ -45,8 +47,6 @@ class WorkflowEngine:
 
     async def start_workflow(
         self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
         definition_id: uuid.UUID,
         initial_context: dict | None = None,
         correlation_id: uuid.UUID | None = None,
@@ -57,8 +57,6 @@ class WorkflowEngine:
             raise ValueError(f"Workflow definition not found: {definition_id}")
 
         execution = WorkflowExecution(
-            tenant_id=tenant_id,
-            user_id=user_id,
             definition_id=definition_id,
             correlation_id=correlation_id,
             status="running",
@@ -103,7 +101,6 @@ class WorkflowEngine:
 
             # Create step execution record
             step_exec = WorkflowStepExecution(
-                tenant_id=execution.tenant_id,
                 execution_id=execution.id,
                 step_index=execution.current_step,
                 step_type=step_type,
@@ -232,8 +229,6 @@ class WorkflowEngine:
         from src.events.schemas import PlatformEvent
 
         event = PlatformEvent(
-            tenant_id=execution.tenant_id,
-            user_id=execution.user_id,
             event_type=config.get("event_type", "workflow.step_event"),
             event_category=config.get("category", "system"),
             domain=config.get("domain"),

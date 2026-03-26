@@ -1,5 +1,7 @@
 """
 Database access layer for workflow orchestration.
+
+Single-user mode: No tenant_id filtering.
 """
 import uuid
 
@@ -21,10 +23,10 @@ class WorkflowDefinitionRepository:
     async def get_by_id(self, definition_id: uuid.UUID) -> WorkflowDefinition | None:
         return await self.session.get(WorkflowDefinition, definition_id)
 
-    async def list_by_tenant(
-        self, tenant_id: uuid.UUID, domain: str | None = None, active_only: bool = True
+    async def list_all(
+        self, domain: str | None = None, active_only: bool = True
     ) -> list[WorkflowDefinition]:
-        stmt = select(WorkflowDefinition).where(WorkflowDefinition.tenant_id == tenant_id)
+        stmt = select(WorkflowDefinition)
         if domain:
             stmt = stmt.where(WorkflowDefinition.domain == domain)
         if active_only:
@@ -32,12 +34,9 @@ class WorkflowDefinitionRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def list_by_trigger(
-        self, tenant_id: uuid.UUID, trigger_type: str
-    ) -> list[WorkflowDefinition]:
+    async def list_by_trigger(self, trigger_type: str) -> list[WorkflowDefinition]:
         result = await self.session.execute(
             select(WorkflowDefinition).where(
-                WorkflowDefinition.tenant_id == tenant_id,
                 WorkflowDefinition.trigger_type == trigger_type,
                 WorkflowDefinition.active == True,
             )
@@ -67,10 +66,9 @@ class WorkflowExecutionRepository:
             .values(**values)
         )
 
-    async def list_active(self, tenant_id: uuid.UUID) -> list[WorkflowExecution]:
+    async def list_active(self) -> list[WorkflowExecution]:
         result = await self.session.execute(
             select(WorkflowExecution).where(
-                WorkflowExecution.tenant_id == tenant_id,
                 WorkflowExecution.status.in_(["pending", "running", "paused"]),
             )
         )

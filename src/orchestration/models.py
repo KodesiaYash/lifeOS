@@ -1,17 +1,19 @@
 """
 SQLAlchemy models for workflow orchestration.
+
+Single-user mode: No tenant_id or user_id references.
 """
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.shared.base_model import TenantAwareBase
+from src.shared.base_model import TimestampedBase
 
 
-class WorkflowDefinition(TenantAwareBase):
+class WorkflowDefinition(TimestampedBase):
     """Reusable workflow template definitions."""
     __tablename__ = "orch_workflow_definitions"
 
@@ -25,11 +27,10 @@ class WorkflowDefinition(TenantAwareBase):
     active: Mapped[bool] = mapped_column(Integer, nullable=False, default=True)
 
 
-class WorkflowExecution(TenantAwareBase):
+class WorkflowExecution(TimestampedBase):
     """Runtime instance of a workflow execution."""
     __tablename__ = "orch_workflow_executions"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=False, index=True)
     definition_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("orch_workflow_definitions.id"), nullable=False)
     correlation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default="pending")
@@ -41,7 +42,7 @@ class WorkflowExecution(TenantAwareBase):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
-class WorkflowStepExecution(TenantAwareBase):
+class WorkflowStepExecution(TimestampedBase):
     """Individual step execution within a workflow."""
     __tablename__ = "orch_workflow_step_executions"
 
