@@ -15,9 +15,12 @@ env:
   REDIS_URL: redis://localhost:6379/0
 
 jobs:
-  lint:
-    name: Lint & Type Check
+  # Build dependencies once and cache the entire venv
+  setup:
+    name: Setup & Cache Dependencies
     runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,38 +30,72 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Cache pip dependencies
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache virtual environment
+        id: cache-venv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: .venv
+          key: ${{ steps.cache-key.outputs.key }}
 
       - name: Install dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
-          python -m pip install --upgrade pip
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
           pip install ruff mypy pylint
           pip install -e ".[dev]"
 
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore cached venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
       - name: Run Ruff (linter)
-        run: ruff check src/ tests/
+        run: |
+          source .venv/bin/activate
+          ruff check src/ tests/
 
       - name: Run Ruff (formatter check)
-        run: ruff format --check src/ tests/
+        run: |
+          source .venv/bin/activate
+          ruff format --check src/ tests/
 
       - name: Run Pylint
         run: |
+          source .venv/bin/activate
           pylint src/ --exit-zero --output-format=colorized \
             --disable=C0114,C0115,C0116,R0903,R0913,W0511 \
             --max-line-length=120
 
       - name: Run MyPy (type checking)
-        run: mypy src/ --ignore-missing-imports --no-error-summary || true
+        run: |
+          source .venv/bin/activate
+          mypy src/ --ignore-missing-imports --no-error-summary || true
 
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -68,21 +105,16 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Cache pip dependencies
+      - name: Restore cached venv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          path: .venv
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Run Unit Tests
         run: |
+          source .venv/bin/activate
           pytest tests/unit/ -v \
             --tb=short \
             --cov=src \
@@ -99,9 +131,44 @@ jobs:
             junit-unit.xml
             coverage.xml
 
+  arch-tests:
+    name: Architecture Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Restore cached venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
+
+      - name: Run Architecture Tests
+        run: |
+          source .venv/bin/activate
+          pytest tests/arch/ -v \
+            --tb=short \
+            --junitxml=junit-arch.xml
+
+      - name: Upload Architecture Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arch-test-results
+          path: junit-arch.xml
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
+    needs: setup
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -136,33 +203,23 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Cache pip dependencies
+      - name: Restore cached venv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U lifeos; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
+          path: .venv
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Run Database Migrations
-        run: alembic upgrade head
+        run: |
+          source .venv/bin/activate
+          alembic upgrade head
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Run Integration Tests
         run: |
+          source .venv/bin/activate
           pytest tests/integration/ -v \
             --tb=short \
             --junitxml=junit-integration.xml
@@ -180,6 +237,7 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    needs: setup
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -214,33 +272,23 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Cache pip dependencies
+      - name: Restore cached venv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U lifeos; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
+          path: .venv
+          key: ${{ needs.setup.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Run Database Migrations
-        run: alembic upgrade head
+        run: |
+          source .venv/bin/activate
+          alembic upgrade head
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Run E2E Tests
         run: |
+          source .venv/bin/activate
           pytest tests/e2e/ -v \
             --tb=short \
             --junitxml=junit-e2e.xml
@@ -254,44 +302,6 @@ jobs:
         with:
           name: e2e-test-results
           path: junit-e2e.xml
-
-  arch-tests:
-    name: Architecture Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Run Architecture Tests
-        run: |
-          pytest tests/arch/ -v \
-            --tb=short \
-            --junitxml=junit-arch.xml
-
-      - name: Upload Architecture Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: arch-test-results
-          path: junit-arch.xml
 
   all-tests-passed:
     name: All Tests Passed
