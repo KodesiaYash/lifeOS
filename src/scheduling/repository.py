@@ -1,5 +1,7 @@
 """
 Database access layer for scheduling entities.
+
+Single-user mode: No tenant_id or user_id filtering.
 """
 import uuid
 
@@ -21,15 +23,8 @@ class ScheduledJobRepository:
     async def get_by_id(self, job_id: uuid.UUID) -> ScheduledJob | None:
         return await self.session.get(ScheduledJob, job_id)
 
-    async def list_active(
-        self, tenant_id: uuid.UUID, user_id: uuid.UUID | None = None
-    ) -> list[ScheduledJob]:
-        stmt = select(ScheduledJob).where(
-            ScheduledJob.tenant_id == tenant_id,
-            ScheduledJob.active.is_(True),
-        )
-        if user_id:
-            stmt = stmt.where(ScheduledJob.user_id == user_id)
+    async def list_active(self) -> list[ScheduledJob]:
+        stmt = select(ScheduledJob).where(ScheduledJob.active.is_(True))
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

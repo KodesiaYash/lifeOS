@@ -1,5 +1,7 @@
 """
 arq worker for async background task processing.
+
+Single-user mode: No tenant_id or user_id needed.
 """
 import structlog
 from arq import create_pool
@@ -40,21 +42,21 @@ async def enqueue_task(
 # These are the actual handler functions that arq workers call.
 # New handlers should be registered here and in WorkerSettings.functions.
 
-async def process_knowledge_ingestion(ctx: dict, document_id: str, tenant_id: str, user_id: str) -> dict:
+async def process_knowledge_ingestion(ctx: dict, document_id: str) -> dict:
     """Background task: process a knowledge document through the ingestion pipeline."""
     logger.info("bg_knowledge_ingestion", document_id=document_id)
     # TODO: Wire up to IngestionPipeline
     return {"status": "completed", "document_id": document_id}
 
 
-async def process_memory_consolidation(ctx: dict, tenant_id: str, user_id: str) -> dict:
+async def process_memory_consolidation(ctx: dict, session_id: str | None = None) -> dict:
     """Background task: consolidate short-term memory into long-term storage."""
-    logger.info("bg_memory_consolidation", tenant_id=tenant_id, user_id=user_id)
+    logger.info("bg_memory_consolidation", session_id=session_id)
     # TODO: Wire up to MemoryConsolidator
     return {"status": "completed"}
 
 
-async def process_connector_sync(ctx: dict, connector_id: str, tenant_id: str) -> dict:
+async def process_connector_sync(ctx: dict, connector_id: str) -> dict:
     """Background task: sync data from an external connector."""
     logger.info("bg_connector_sync", connector_id=connector_id)
     # TODO: Wire up to connector sync logic

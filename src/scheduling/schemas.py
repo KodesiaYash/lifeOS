@@ -37,8 +37,6 @@ class ScheduledJobCreate(BaseModel):
 
 class ScheduledJobRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     name: str
     job_type: str
     schedule_type: str
@@ -67,8 +65,6 @@ class BackgroundTaskCreate(BaseModel):
 
 class BackgroundTaskRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID | None
     task_type: str
     status: str
     priority: int
