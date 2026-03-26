@@ -144,7 +144,7 @@ tests/
 ├── unit/                    # 15 test files — isolated logic, mocks only
 │   ├── conftest.py          # Mock event bus, LLM client, DB session, prompt/tool registries
 │   ├── test_shared/         # test_crypto.py, test_time.py, test_pagination.py
-│   ├── test_core/           # test_schemas.py (TenantCreate, UserCreate, WorkspaceCreate)
+│   ├── test_core/           # test_schemas.py (SettingsRead, SettingsUpdate, DomainRegistryUpdate)
 │   ├── test_events/         # test_bus.py (subscribe, wildcard, publish, error handling)
 │   ├── test_communication/  # test_schemas.py (InboundMessageCreate, MessageType)
 │   ├── test_memory/         # test_schemas.py (MemoryFactCreate, SemanticMemoryCreate, MemoryPacket)
@@ -207,7 +207,7 @@ def test_meal_message_triggers_log_meal_tool():
 
 41 requirements across 7 files:
 
-**Platform (REQ-PLAT-001–009):** Multi-tenant isolation, event bus, 3-layer memory, hybrid RAG, agent ReAct loop, workflow engine, connector framework, credential encryption, domain plugin architecture.
+**Platform (REQ-PLAT-001–009):** Single-user data model, event bus, 3-layer memory, hybrid RAG, agent ReAct loop, workflow engine, connector framework, credential encryption, domain plugin architecture.
 
 **Health (REQ-HEALTH-001–008):** Meal logging NLP, exercise logging, sleep logging, nutrition summary, dietary preference memory, health goals, nutrition coach agent, vitals recording.
 
@@ -266,7 +266,7 @@ All 18 steps of Phase 0 are done:
 1. Project skeleton (pyproject.toml, Dockerfile, docker-compose.yml, .env.example, alembic)
 2. Shared utilities (database, base_model, crypto, pagination, time)
 3. Config & app entry (config.py, main.py with domain plugin loading, dependencies.py)
-4. Core module (tenants, users, workspaces, domain registry)
+4. Core module (settings, domain registry)
 5. Events module (event bus pub/sub, event log)
 6. Communication module (WhatsApp/Telegram/REST adapters, conversations, messages)
 7. Memory module (short-term Redis, structured SQL, semantic pgvector, assembler, consolidation)

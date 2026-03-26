@@ -21,9 +21,9 @@ After reviewing the codebase, I've identified several critical gaps, missing imp
 - Models in each module aren't exported to be discoverable by Alembic
 - Need to ensure all models are imported somewhere that touches `Base.metadata`
 
-### 4. **Event Schema Mismatch**
-- `PlatformEvent` schema still references `tenant_id` in some places after single-user refactor
-- `events/schemas.py` and `events/models.py` may have inconsistencies
+### 4. **Event Schema Mismatch** ✅ RESOLVED
+- `PlatformEvent` schema no longer references `tenant_id` - single-user refactor complete
+- `events/schemas.py` and `events/models.py` are consistent
 
 ---
 
@@ -96,13 +96,13 @@ After reviewing the codebase, I've identified several critical gaps, missing imp
 - Event handlers are empty `pass` statements
 - Knowledge ingestion `_fetch_content` returns `None`
 
-### 19. **Missing Tests for New Single-User Code**
-- Tests exist but may reference old tenant/user patterns
-- Need verification tests pass
+### 19. **Missing Tests for New Single-User Code** ✅ RESOLVED
+- Tests updated to remove tenant/user patterns
+- All 335 tests passing
 
-### 20. **Documentation Drift**
-- `pyproject.toml` description says "multi-tenant" but we're single-user now
-- Some README sections may be outdated
+### 20. **Documentation Drift** ✅ RESOLVED
+- README and LLM_CONTEXT.md updated for single-user mode
+- Core module documentation updated
 
 ### 21. **Unused Imports After Refactor**
 - Several files import `uuid` but don't use it after tenant_id removal
@@ -129,7 +129,7 @@ After reviewing the codebase, I've identified several critical gaps, missing imp
 | `src/main.py` | Registry singleton conflict |
 | `src/communication/router.py` | Orchestrator not wired |
 | `src/kernel/llm_client.py` | No error handling |
-| `src/events/schemas.py` | Verify tenant_id removed |
+| `src/events/schemas.py` | ✅ tenant_id removed |
 
 ---
 

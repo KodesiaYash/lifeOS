@@ -1,6 +1,6 @@
 # AI Life OS — Kernel Foundation (Phase 0)
 
-An AI-powered life management platform built as a modular monolith. The kernel provides multi-tenant infrastructure, a three-layer memory system, hybrid RAG retrieval, workflow orchestration, agent runtime, and pluggable domain scaffolds.
+An AI-powered life management platform built as a modular monolith. The kernel provides a three-layer memory system, hybrid RAG retrieval, workflow orchestration, agent runtime, and pluggable domain scaffolds. Designed for single-user self-hosting.
 
 ## Architecture
 
@@ -42,9 +42,9 @@ An AI-powered life management platform built as a modular monolith. The kernel p
 src/
 ├── config.py              # Pydantic Settings
 ├── main.py                # FastAPI app factory
-├── dependencies.py        # DI: db session, tenant_id, user_id
+├── dependencies.py        # DI: db session
 ├── shared/                # Database, base models, crypto, pagination, time
-├── core/                  # Tenants, users, workspaces, domain registry
+├── core/                  # Settings, domain registry
 ├── events/                # Event bus (pub/sub) + event log
 ├── communication/         # Channel adapters (WhatsApp, Telegram, REST)
 ├── memory/                # Short-term (Redis), structured (SQL), semantic (pgvector)
@@ -148,7 +148,7 @@ See [`tests/README.md`](tests/README.md) for the full test architecture and prod
 Each module has its own README:
 
 - [`src/shared/README.md`](src/shared/README.md) — Database, base models, crypto, time utilities
-- [`src/core/README.md`](src/core/README.md) — Multi-tenant core entities
+- [`src/core/README.md`](src/core/README.md) — Settings and domain registry
 - [`src/events/README.md`](src/events/README.md) — Event bus and event log
 - [`src/communication/README.md`](src/communication/README.md) — Channel adapters and messaging
 - [`src/memory/README.md`](src/memory/README.md) — Three-layer memory system
@@ -173,7 +173,7 @@ Each module has its own README:
 - [x] Project skeleton & Docker infrastructure
 - [x] Shared utilities (database, crypto, pagination, time)
 - [x] Config & FastAPI app entry point
-- [x] Core module (tenants, users, workspaces, domain registry)
+- [x] Core module (settings, domain registry)
 - [x] Events module (event bus, event log)
 - [x] Communication module (channel adapters, conversations, messages)
 - [x] Memory module (short-term, structured, semantic, assembler)
