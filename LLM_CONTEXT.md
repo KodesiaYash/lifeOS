@@ -11,14 +11,17 @@
 - **GitHub:** https://github.com/KodesiaYash/lifeOS
 - **Phase:** Phase 0 complete (kernel foundation). Phase 1 (domain implementations) pending.
 - **Tech stack:** Python 3.11+, FastAPI, SQLAlchemy 2.0 async, PostgreSQL 16 + pgvector, Redis 7, LiteLLM, structlog, Pydantic Settings, APScheduler, arq, Docker Compose.
+- **Mode:** Single-user (self-hosted). Multi-tenancy can be added later for SaaS.
 
 ---
 
 ## What This Project Is
 
-An AI-powered multi-tenant life management platform. Users interact via WhatsApp/Telegram/REST. The AI understands intent, routes to domain-specific agents (health, finance, productivity, relationships, learning, home), calls tools, remembers context across conversations, and provides personalised responses.
+An AI-powered **personal** life management platform designed to run on your own hardware (Mac Mini, PC, etc.). Users interact via WhatsApp/Telegram/REST. The AI understands intent, routes to domain-specific agents (health, finance, productivity, relationships, learning, home), calls tools, remembers context across conversations, and provides personalised responses.
 
 Built as a **modular monolith** — one deployable with clean module boundaries, event-driven communication, and a plugin architecture for domains.
+
+**Single-user by design:** Clone the repo, run it, and it works for you. No tenant or user IDs required. The architecture is extensible for multi-tenancy later if you want to offer it as a SaaS.
 
 ---
 
@@ -46,9 +49,13 @@ Full documentation: `ARCHITECTURE.md` (project root).
 src/
 ├── config.py                # Pydantic Settings (env vars)
 ├── main.py                  # FastAPI app factory + domain plugin loading in lifespan
-├── dependencies.py          # DI: db session, tenant_id, user_id
+├── dependencies.py          # DI: db session only (no tenant/user context needed)
 ├── shared/                  # Database, base models, crypto, pagination, time
-├── core/                    # Tenants, users, workspaces, domain registry
+│   └── base_model.py        # Base, TimestampedBase (no tenant_id)
+├── core/                    # Settings, domain registry (no tenants/users)
+│   ├── models.py            # Settings, DomainRegistry
+│   ├── schemas.py           # SettingsRead/Update, DomainRegistryRead/Update
+│   └── middleware.py        # RequestContextMiddleware (request tracing)
 ├── events/                  # Event bus (pub/sub) with wildcard matching
 │   └── bus.py               # EventBus class — _handlers dict, publish(), subscribe()
 ├── communication/           # Channel adapters (WhatsApp, Telegram, REST)
@@ -218,6 +225,12 @@ def test_meal_message_triggers_log_meal_tool():
 
 ## Key Technical Details
 
+### Single-User Architecture
+- **No tenant_id or user_id** — All data belongs to the single user running the app
+- **`TimestampedBase`** — Base class for models with id, created_at, updated_at, deleted_at
+- **`Settings`** model — Singleton for app preferences (timezone, language, active_domains)
+- **Extensible for multi-tenancy** — Add tenant_id column and filtering later if needed
+
 ### EventBus (`src/events/bus.py`)
 - Internal attribute: `_handlers` (defaultdict of lists), NOT `_subscribers`
 - Wildcard: `health.*` matches `health.meal_logged`, `health.exercise_logged`
@@ -236,7 +249,7 @@ def test_meal_message_triggers_log_meal_tool():
 
 ### Memory System
 - **Short-term:** Redis with TTL (session context)
-- **Structured:** SQL facts with category, key, value, confidence
+- **Structured:** SQL facts with category, key, value, confidence (no user scoping needed)
 - **Semantic:** pgvector embeddings for fuzzy recall
 - **MemoryPacket:** Combined output from all three layers for prompt injection
 
@@ -322,13 +335,15 @@ pytest, pytest-asyncio, pytest-cov, httpx, factory-boy, ruff, mypy, pre-commit, 
 
 ## Important Conventions
 
-1. **All tool handlers must be async** — enforced by arch tests
-2. **All identifiers namespaced with domain** — `health.log_meal`, not `log_meal`
-3. **Every domain exports `plugin = MyPlugin()`** in `__init__.py`
-4. **Requirements are Python dicts** in `tests/requirements/`, not Markdown
-5. **Each test file has a module docstring** listing every test function and what it does
-6. **Stubs return** `{"status": "stub", "action": "...", "input": kwargs}`
-7. **Static manifest.py and plugin declarations must stay in sync** — arch tests verify
-8. **Event bus uses `_handlers`** internally (not `_subscribers`)
-9. **No flat test files** — everything is in `tests/{tier}/test_{module}/`
-10. **Cassettes for E2E, real LLM for drift** — never real LLM in CI except nightly
+1. **Single-user mode** — No tenant_id or user_id in models, schemas, or dependencies
+2. **All tool handlers must be async** — enforced by arch tests
+3. **All identifiers namespaced with domain** — `health.log_meal`, not `log_meal`
+4. **Every domain exports `plugin = MyPlugin()`** in `__init__.py`
+5. **Requirements are Python dicts** in `tests/requirements/`, not Markdown
+6. **Each test file has a module docstring** listing every test function and what it does
+7. **Stubs return** `{"status": "stub", "action": "...", "input": kwargs}`
+8. **Static manifest.py and plugin declarations must stay in sync** — arch tests verify
+9. **Event bus uses `_handlers`** internally (not `_subscribers`)
+10. **No flat test files** — everything is in `tests/{tier}/test_{module}/`
+11. **Cassettes for E2E, real LLM for drift** — never real LLM in CI except nightly
+12. **`TimestampedBase`** for all domain models (provides id, created_at, updated_at, deleted_at)
