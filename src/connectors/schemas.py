@@ -42,8 +42,6 @@ class ConnectorInstanceCreate(BaseModel):
 
 class ConnectorInstanceRead(BaseModel):
     id: uuid.UUID
-    tenant_id: uuid.UUID
-    user_id: uuid.UUID
     connector_type: str
     display_name: str
     config: dict

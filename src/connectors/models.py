@@ -1,5 +1,7 @@
 """
 SQLAlchemy models for external connectors.
+
+Single-user mode: No tenant_id or user_id references.
 """
 import uuid
 from datetime import datetime
@@ -8,10 +10,10 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, tex
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.shared.base_model import TenantAwareBase
+from src.shared.base_model import TimestampedBase
 
 
-class ConnectorDefinition(TenantAwareBase):
+class ConnectorDefinition(TimestampedBase):
     """Registered external service connector types."""
     __tablename__ = "conn_definitions"
 
@@ -25,11 +27,10 @@ class ConnectorDefinition(TenantAwareBase):
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
-class ConnectorInstance(TenantAwareBase):
-    """User-installed connector instances with credentials."""
+class ConnectorInstance(TimestampedBase):
+    """Installed connector instances with credentials."""
     __tablename__ = "conn_instances"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("core_users.id"), nullable=False, index=True)
     connector_type: Mapped[str] = mapped_column(String(100), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     credentials_encrypted: Mapped[bytes | None] = mapped_column("credentials_encrypted", nullable=True)
@@ -41,7 +42,7 @@ class ConnectorInstance(TenantAwareBase):
     error_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
-class SyncLog(TenantAwareBase):
+class SyncLog(TimestampedBase):
     """Log of connector sync operations."""
     __tablename__ = "conn_sync_logs"
 

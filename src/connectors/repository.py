@@ -47,13 +47,9 @@ class ConnectorInstanceRepository:
     async def get_by_id(self, instance_id: uuid.UUID) -> ConnectorInstance | None:
         return await self.session.get(ConnectorInstance, instance_id)
 
-    async def list_by_user(
-        self, tenant_id: uuid.UUID, user_id: uuid.UUID
-    ) -> list[ConnectorInstance]:
+    async def list_all(self) -> list[ConnectorInstance]:
         result = await self.session.execute(
             select(ConnectorInstance).where(
-                ConnectorInstance.tenant_id == tenant_id,
-                ConnectorInstance.user_id == user_id,
                 ConnectorInstance.deleted_at.is_(None),
             )
         )

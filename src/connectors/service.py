@@ -1,5 +1,7 @@
 """
 Connector management service: install, sync, and manage external connectors.
+
+Single-user mode: No tenant_id or user_id needed.
 """
 import uuid
 
@@ -24,13 +26,8 @@ class ConnectorService:
         self.instances = ConnectorInstanceRepository(session)
         self.sync_logs = SyncLogRepository(session)
 
-    async def install_connector(
-        self,
-        tenant_id: uuid.UUID,
-        user_id: uuid.UUID,
-        data: ConnectorInstanceCreate,
-    ) -> ConnectorInstance:
-        """Install a new connector instance for a user."""
+    async def install_connector(self, data: ConnectorInstanceCreate) -> ConnectorInstance:
+        """Install a new connector instance."""
         # Verify connector type exists
         definition = await self.definitions.get_by_type(data.connector_type)
         if definition is None:
@@ -43,8 +40,6 @@ class ConnectorService:
             credentials_encrypted = encrypt(json.dumps(data.credentials))
 
         instance = ConnectorInstance(
-            tenant_id=tenant_id,
-            user_id=user_id,
             connector_type=data.connector_type,
             display_name=data.display_name,
             credentials_encrypted=credentials_encrypted,
@@ -72,7 +67,6 @@ class ConnectorService:
             raise ValueError(f"Connector instance not found: {instance_id}")
 
         sync_log = SyncLog(
-            tenant_id=instance.tenant_id,
             instance_id=instance_id,
             sync_type="full" if full else "incremental",
             status="running",
