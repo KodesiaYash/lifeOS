@@ -40,8 +40,12 @@ import pytest
 
 from src.domains.plugin import DomainPlugin
 
-DOMAINS = ["health", "finance", "productivity", "relationships", "learning", "home"]
 DOMAINS_DIR = Path(__file__).parent.parent.parent / "src" / "domains"
+DOMAINS = sorted(
+    path.name
+    for path in DOMAINS_DIR.iterdir()
+    if path.is_dir() and not path.name.startswith("_") and (path / "__init__.py").exists()
+)
 
 
 def _load_plugin(domain: str) -> DomainPlugin | None:

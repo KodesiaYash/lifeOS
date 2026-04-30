@@ -22,7 +22,7 @@ After reviewing the codebase, I've identified several critical gaps, missing imp
 - Need to ensure all models are imported somewhere that touches `Base.metadata`
 
 ### 4. **Event Schema Mismatch** ✅ RESOLVED
-- `PlatformEvent` schema no longer references `tenant_id` - single-user refactor complete
+- `PlatformEvent` schema now matches the simplified single-user event model
 - `events/schemas.py` and `events/models.py` are consistent
 
 ---
@@ -97,7 +97,7 @@ After reviewing the codebase, I've identified several critical gaps, missing imp
 - Knowledge ingestion `_fetch_content` returns `None`
 
 ### 19. **Missing Tests for New Single-User Code** ✅ RESOLVED
-- Tests updated to remove tenant/user patterns
+- Tests updated to match the simplified single-user schema
 - All 335 tests passing
 
 ### 20. **Documentation Drift** ✅ RESOLVED
@@ -105,7 +105,7 @@ After reviewing the codebase, I've identified several critical gaps, missing imp
 - Core module documentation updated
 
 ### 21. **Unused Imports After Refactor**
-- Several files import `uuid` but don't use it after tenant_id removal
+- Several files import `uuid` but don't use it after the ownership-scoping cleanup
 - Minor cleanup needed
 
 ---
@@ -129,7 +129,7 @@ After reviewing the codebase, I've identified several critical gaps, missing imp
 | `src/main.py` | Registry singleton conflict |
 | `src/communication/router.py` | Orchestrator not wired |
 | `src/kernel/llm_client.py` | No error handling |
-| `src/events/schemas.py` | ✅ tenant_id removed |
+| `src/events/schemas.py` | ✅ event schema aligned with current models |
 
 ---
 

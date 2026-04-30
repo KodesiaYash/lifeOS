@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.knowledge.embedding import EmbeddingService
 from src.retrieval.keyword_retriever import KeywordRetriever
 from src.retrieval.reranker import Reranker
@@ -46,17 +47,24 @@ class RetrievalCoordinator:
             RetrievalStrategy.MEMORY_ONLY,
             RetrievalStrategy.KNOWLEDGE_ONLY,
         )
-        if needs_embedding and embedding is None:
+        if needs_embedding and embedding is None and settings.OPENAI_API_KEY:
             embedding = await self.embedding_service.embed_text(request.query)
 
         all_results: list[RetrievalResult] = []
         domain = request.domains[0] if request.domains and len(request.domains) == 1 else None
+        domains = request.domains if request.domains and len(request.domains) > 1 else None
 
         # Route to retrievers based on strategy
-        if request.strategy in (RetrievalStrategy.STRUCTURED, RetrievalStrategy.HYBRID, RetrievalStrategy.ALL):
+        if request.strategy in (
+            RetrievalStrategy.STRUCTURED,
+            RetrievalStrategy.HYBRID,
+            RetrievalStrategy.ALL,
+            RetrievalStrategy.MEMORY_ONLY,
+        ):
             structured_results = await self.structured.search(
                 query=request.query,
                 domain=domain,
+                domains=domains,
                 max_results=request.max_results,
             )
             all_results.extend(structured_results)
@@ -78,6 +86,7 @@ class RetrievalCoordinator:
                 query_embedding=embedding,
                 max_results=request.max_results,
                 domain=domain,
+                domains=domains,
                 search_memories=search_memories,
                 search_knowledge=search_knowledge,
             )

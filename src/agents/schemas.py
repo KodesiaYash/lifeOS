@@ -1,7 +1,6 @@
 """
 Pydantic schemas for the agent system.
 """
-
 import uuid
 from datetime import datetime
 
@@ -42,6 +41,8 @@ class AgentDefinitionRead(BaseModel):
 
 class AgentExecutionRead(BaseModel):
     id: uuid.UUID
+    tenant_id: uuid.UUID
+    user_id: uuid.UUID
     agent_type: str
     status: str
     input_data: dict
@@ -60,7 +61,6 @@ class AgentExecutionRead(BaseModel):
 
 class AgentInvokeRequest(BaseModel):
     """Request to invoke an agent."""
-
     agent_type: str
     input_text: str
     context: dict = Field(default_factory=dict)
@@ -69,7 +69,6 @@ class AgentInvokeRequest(BaseModel):
 
 class AgentInvokeResponse(BaseModel):
     """Response from an agent invocation."""
-
     execution_id: uuid.UUID
     agent_type: str
     status: str

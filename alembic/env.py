@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from src.config import settings
 from src.shared.base_model import Base
 
 # Import all models so Alembic can discover them
@@ -21,6 +22,7 @@ from src.agents.models import AgentDefinition, AgentExecution  # noqa: F401
 
 # Alembic Config object
 config = context.config
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Set up Python logging from alembic.ini
 if config.config_file_name is not None:

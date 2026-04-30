@@ -1,7 +1,6 @@
 """
 Database access layer for connector entities.
 """
-
 import uuid
 
 from sqlalchemy import select, update
@@ -48,18 +47,26 @@ class ConnectorInstanceRepository:
     async def get_by_id(self, instance_id: uuid.UUID) -> ConnectorInstance | None:
         return await self.session.get(ConnectorInstance, instance_id)
 
-    async def list_all(self) -> list[ConnectorInstance]:
+    async def list_by_user(
+        self, tenant_id: uuid.UUID, user_id: uuid.UUID
+    ) -> list[ConnectorInstance]:
         result = await self.session.execute(
             select(ConnectorInstance).where(
+                ConnectorInstance.tenant_id == tenant_id,
+                ConnectorInstance.user_id == user_id,
                 ConnectorInstance.deleted_at.is_(None),
             )
         )
         return list(result.scalars().all())
 
-    async def update_status(self, instance_id: uuid.UUID, status: str, **kwargs: object) -> None:
+    async def update_status(
+        self, instance_id: uuid.UUID, status: str, **kwargs: object
+    ) -> None:
         values = {"status": status, **kwargs}
         await self.session.execute(
-            update(ConnectorInstance).where(ConnectorInstance.id == instance_id).values(**values)
+            update(ConnectorInstance)
+            .where(ConnectorInstance.id == instance_id)
+            .values(**values)
         )
 
 
@@ -72,8 +79,13 @@ class SyncLogRepository:
         await self.session.flush()
         return log
 
-    async def list_by_instance(self, instance_id: uuid.UUID, limit: int = 20) -> list[SyncLog]:
+    async def list_by_instance(
+        self, instance_id: uuid.UUID, limit: int = 20
+    ) -> list[SyncLog]:
         result = await self.session.execute(
-            select(SyncLog).where(SyncLog.instance_id == instance_id).order_by(SyncLog.started_at.desc()).limit(limit)
+            select(SyncLog)
+            .where(SyncLog.instance_id == instance_id)
+            .order_by(SyncLog.started_at.desc())
+            .limit(limit)
         )
         return list(result.scalars().all())

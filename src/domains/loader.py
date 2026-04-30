@@ -47,6 +47,11 @@ def get_loaded_plugins() -> dict[str, DomainPlugin]:
     return dict(_loaded_plugins)
 
 
+def get_loaded_plugin(domain_id: str) -> DomainPlugin | None:
+    """Return a loaded plugin by domain ID, if available."""
+    return _loaded_plugins.get(domain_id)
+
+
 def get_memory_categories() -> dict[str, list[dict]]:
     """Return all registered memory categories across domains."""
     return dict(_memory_categories)

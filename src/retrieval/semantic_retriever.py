@@ -27,6 +27,7 @@ class SemanticRetriever:
         query_embedding: list[float],
         max_results: int = 10,
         domain: str | None = None,
+        domains: list[str] | None = None,
         search_memories: bool = True,
         search_knowledge: bool = True,
     ) -> list[RetrievalResult]:
@@ -38,6 +39,7 @@ class SemanticRetriever:
                 embedding=query_embedding,
                 limit=max_results,
                 domain=domain,
+                domains=domains,
             )
             for mem in memories:
                 results.append(
@@ -59,12 +61,12 @@ class SemanticRetriever:
             )
             for chunk in chunks:
                 results.append(
-                    RetrievalResult(
-                        id=chunk.id,
-                        source="knowledge_chunk",
-                        content=chunk.text,
-                        relevance_score=0.0,
-                        created_at=chunk.created_at,
+                        RetrievalResult(
+                            id=chunk.id,
+                            source="knowledge_chunk",
+                            content=chunk.content,
+                            relevance_score=0.0,
+                            created_at=chunk.created_at,
                         metadata={"document_id": str(chunk.document_id), "chunk_index": chunk.chunk_index},
                     )
                 )

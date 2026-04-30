@@ -9,7 +9,7 @@ All 18 steps done:
 1. Project skeleton (pyproject.toml, Dockerfile, docker-compose.yml, .env.example, alembic)
 2. Shared utilities (database, base_model, crypto, pagination, time)
 3. Config & app entry (config.py, main.py with domain plugin loading, dependencies.py)
-4. Core module (settings, domain registry) — **single-user mode, no tenants/users**
+4. Core module (settings, domain registry) — **single-user mode with simplified global state**
 5. Events module (event bus pub/sub, event log)
 6. Communication module (WhatsApp/Telegram/REST adapters, conversations, messages)
 7. Memory module (short-term Redis, structured SQL, semantic pgvector, assembler, consolidation)
@@ -19,7 +19,7 @@ All 18 steps done:
 11. Orchestration module (workflow engine with step types)
 12. Agents module (runtime with ReAct tool-calling, registry)
 13. Scheduling module (APScheduler + arq worker)
-14. Domain plugin system (DomainPlugin protocol, loader, all 6 domains with stub handlers)
+14. Domain plugin system (DomainPlugin protocol, loader, 7 domains with dutch_tutor promoted)
 15. Connectors scaffold (base connector, service, models)
 16. Seed data script (scripts/seed.py)
 17. Full test suite (unit/integration/e2e/drift/arch + requirements) — **335 tests passing**

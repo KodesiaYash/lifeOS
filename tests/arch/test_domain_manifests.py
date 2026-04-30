@@ -20,9 +20,13 @@ from pathlib import Path
 
 import pytest
 
-DOMAINS = ["health", "finance", "productivity", "relationships", "learning", "home"]
 DOMAINS_DIR = Path(__file__).parent.parent.parent / "src" / "domains"
 REQUIREMENTS_DIR = Path(__file__).parent.parent / "requirements"
+DOMAINS = sorted(
+    path.name
+    for path in DOMAINS_DIR.iterdir()
+    if path.is_dir() and not path.name.startswith("_") and (path / "__init__.py").exists()
+)
 
 REQUIRED_FILES = ["__init__.py", "manifest.py", "models.py", "router.py", "README.md"]
 REQUIRED_MANIFEST_KEYS = {"domain_id", "event_types", "tools", "agents", "memory_categories"}

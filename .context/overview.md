@@ -13,7 +13,7 @@
 
 An AI-powered **single-user** life management platform designed for self-hosting. Users interact via WhatsApp/Telegram/REST. The AI understands intent, routes to domain-specific agents (health, finance, productivity, relationships, learning, home), calls tools, remembers context across conversations, and provides personalised responses.
 
-Built as a **modular monolith** — one deployable with clean module boundaries, event-driven communication, and a plugin architecture for domains. No tenant/user management needed — the app runs for whoever is running it.
+Built as a **modular monolith** — one deployable with clean module boundaries, event-driven communication, and a plugin architecture for domains. The app runs as a straightforward self-hosted single-user system.
 
 ## Tech Stack
 

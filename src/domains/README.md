@@ -100,6 +100,14 @@ class HealthPlugin(DomainPlugin):
         from src.domains.health.router import router
         return router
 
+    def resolve_direct_tool(self, user_message: str):
+        # Optional deterministic fast-path for very simple requests.
+        return None
+
+    async def capture_memory(self, session, *, user_message: str, user_name: str | None):
+        # Optional explicit long-term memory promotion hook.
+        return None
+
 # THIS LINE IS REQUIRED — the loader imports it
 plugin = HealthPlugin()
 ```
@@ -290,7 +298,7 @@ When the FastAPI app starts, `src/domains/loader.py` runs this sequence for each
 
 After all domains are loaded:
 ```
-"all_domains_loaded total=6 successful=6 failed=0"
+"all_domains_loaded total=7 successful=7 failed=0"
 ```
 
 Registries are stored on `app.state` for dependency injection in route handlers.
@@ -325,5 +333,6 @@ The arch test `test_domain_integration.py` performs these cross-layer checks:
 | **relationships** | 4 (log_interaction, create_contact, get_contact, schedule_event) | 1 (social_advisor) | 2 (interaction_logged, reminder_due) | 4 |
 | **learning** | 4 (add_resource, log_session, get_progress, capture_note) | 2 (tutor, study_planner) | 2 (resource_added, session_logged) | 5 |
 | **home** | 4 (create_task, complete_task, add_to_shopping_list, get_maintenance_schedule) | 1 (household_manager) | 2 (task_created, maintenance_due) | 5 |
+| **dutch_tutor** | 1 (translate_roundtrip) | 1 (translation_coach) | 1 (message_processed) | 4 |
 
-**Totals:** 26 tools, 9 agents, 12 event handlers, 29 memory categories across 6 domains.
+**Totals:** 27 tools, 10 agents, 13 event handlers, 33 memory categories across 7 domains.

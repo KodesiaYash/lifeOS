@@ -188,7 +188,7 @@ pytest tests/arch/test_scenario_generator.py -v -s
 
 | ID | Requirement | Tests |
 |----|------------|-------|
-| REQ-PLAT-001 | Multi-Tenant Data Isolation | `unit/test_core/test_schemas.py` |
+| REQ-PLAT-001 | Single-User Data Model | `unit/test_core/test_schemas.py` |
 | REQ-PLAT-002 | Event Bus Decoupling | `unit/test_events/test_bus.py`, `integration/test_event_flow.py` |
 | REQ-PLAT-003 | Three-Layer Memory System | `unit/test_memory/test_schemas.py` |
 | REQ-PLAT-004 | Hybrid RAG Retrieval | `unit/test_retrieval/test_reranker.py`, `unit/test_retrieval/test_schemas.py` |
@@ -197,6 +197,13 @@ pytest tests/arch/test_scenario_generator.py -v -s
 | REQ-PLAT-007 | Connector Framework | `unit/test_connectors/test_schemas.py` |
 | REQ-PLAT-008 | Credential Encryption | `unit/test_shared/test_crypto.py` |
 | REQ-PLAT-009 | Domain Plugin Architecture | `arch/test_domain_manifests.py` |
+| REQ-PLAT-010 | Channel-To-Domain Message Flow Contract | `unit/test_kernel/test_orchestrator_dutch_tutor.py`, `integration/test_dutch_tutor_flow.py` |
+
+### Dutch Tutor Domain (REQ-DUTCH-*)
+
+| ID | Requirement | Tests |
+|----|------------|-------|
+| REQ-DUTCH-001 | Roundtrip Word Translation | `unit/test_domains/test_dutch_tutor_service.py`, `unit/test_kernel/test_orchestrator_dutch_tutor.py`, `integration/test_dutch_tutor_flow.py` |
 
 ### Health Domain (REQ-HEALTH-*)
 

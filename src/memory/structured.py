@@ -30,7 +30,7 @@ class StructuredMemory:
         Store a fact. If a fact with the same key already exists,
         supersede it with the new value.
         """
-        existing = await self.repo.get_by_key(data.key)
+        existing = await self.repo.get_by_key(data.key, domain=data.domain)
 
         fact = MemoryFact(
             domain=data.domain,
@@ -66,3 +66,7 @@ class StructuredMemory:
     async def recall_all(self, domain: str | None = None) -> list[MemoryFact]:
         """Recall all active facts."""
         return await self.repo.list_all_active(domain)
+
+    async def forget(self, fact_id) -> MemoryFact | None:
+        """Soft-delete a fact from long-term memory."""
+        return await self.repo.deactivate(fact_id)

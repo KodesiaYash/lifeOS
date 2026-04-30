@@ -43,7 +43,7 @@ class TestIntentClassificationDrift:
         llm = LLMClient()
         prompt = (
             "Classify the user's intent. Return JSON with keys: "
-            "domain (one of: health, finance, productivity, relationships, learning, home, general), "
+            "domain (one of: health, finance, productivity, relationships, learning, home, dutch_tutor, general), "
             "intent (short action name), confidence (0.0-1.0).\n\n"
             "User message: I had eggs and toast for breakfast"
         )
@@ -65,7 +65,7 @@ class TestIntentClassificationDrift:
         llm = LLMClient()
         prompt = (
             "Classify the user's intent. Return JSON with keys: "
-            "domain (one of: health, finance, productivity, relationships, learning, home, general), "
+            "domain (one of: health, finance, productivity, relationships, learning, home, dutch_tutor, general), "
             "intent (short action name), confidence (0.0-1.0).\n\n"
             "User message: Am I on budget this month?"
         )
@@ -86,7 +86,7 @@ class TestIntentClassificationDrift:
         llm = LLMClient()
         prompt = (
             "Classify the user's intent. Return JSON with keys: "
-            "domain (one of: health, finance, productivity, relationships, learning, home, general), "
+            "domain (one of: health, finance, productivity, relationships, learning, home, dutch_tutor, general), "
             "intent (short action name), confidence (0.0-1.0).\n\n"
             "User message: Add a task to call the dentist"
         )
@@ -107,7 +107,7 @@ class TestIntentClassificationDrift:
         llm = LLMClient()
         prompt = (
             "Classify the user's intent. Return JSON with keys: "
-            "domain (one of: health, finance, productivity, relationships, learning, home, general), "
+            "domain (one of: health, finance, productivity, relationships, learning, home, dutch_tutor, general), "
             "intent (short action name), confidence (0.0-1.0).\n\n"
             "User message: Hello"
         )
@@ -127,7 +127,7 @@ class TestIntentClassificationDrift:
         llm = LLMClient()
         prompt = (
             "Classify the user's intent. Return JSON with keys: "
-            "domain (one of: health, finance, productivity, relationships, learning, home, general), "
+            "domain (one of: health, finance, productivity, relationships, learning, home, dutch_tutor, general), "
             "intent (short action name), confidence (0.0-1.0).\n\n"
             "User message: I feel tired"
         )

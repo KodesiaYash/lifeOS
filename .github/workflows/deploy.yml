@@ -1,0 +1,61 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy (default: main)"
+        required: false
+        default: "main"
+
+concurrency:
+  group: deploy-lifeos
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, macOS, lifeos]
+    environment: prod
+    timeout-minutes: 20
+
+    steps:
+      - name: Write env file from secret
+        env:
+          APP_DIR: ${{ vars.APP_DIR }}
+          APP_ENV_CONTENTS: ${{ secrets.ENV }}
+        run: |
+          set -euo pipefail
+          : "${APP_DIR:=$HOME/Desktop/DeploymentHost/lifeOS}"
+          if [ -z "${APP_ENV_CONTENTS:-}" ]; then
+            echo "ERROR: secret 'ENV' is empty or unavailable to this job." >&2
+            echo "Check: Settings -> Environments -> prod -> secret named ENV." >&2
+            exit 1
+          fi
+          mkdir -p "$APP_DIR"
+          umask 077
+          printf '%s' "$APP_ENV_CONTENTS" > "$APP_DIR/.env"
+          chmod 600 "$APP_DIR/.env"
+          echo "Wrote $(wc -l <"$APP_DIR/.env" | tr -d ' ') lines to $APP_DIR/.env"
+
+      - name: Run deploy script
+        env:
+          APP_DIR: ${{ vars.APP_DIR }}
+          DEPLOY_BRANCH: ${{ github.event.inputs.branch || 'main' }}
+        run: |
+          set -euo pipefail
+          : "${APP_DIR:=$HOME/Desktop/DeploymentHost/lifeOS}"
+          if [ ! -x "$APP_DIR/deploy.sh" ]; then
+            echo "ERROR: $APP_DIR/deploy.sh not found or not executable." >&2
+            echo "Bootstrap the deployment host once by cloning the repo into APP_DIR." >&2
+            exit 1
+          fi
+          APP_DIR="$APP_DIR" DEPLOY_BRANCH="$DEPLOY_BRANCH" bash "$APP_DIR/deploy.sh"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "Branch: ${{ github.event.inputs.branch || 'main' }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Result: ${{ job.status }}"

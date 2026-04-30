@@ -1,12 +1,9 @@
 """
 Agent runtime: executes agent definitions with ReAct-style tool calling loops.
-
-Single-user mode: No tenant_id or user_id needed.
 """
-
 import json
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,7 +38,12 @@ class AgentRuntime:
         self.executions = AgentExecutionRepository(session)
         self.llm = LLMClient()
 
-    async def invoke(self, request: AgentInvokeRequest) -> AgentInvokeResponse:
+    async def invoke(
+        self,
+        tenant_id: uuid.UUID,
+        user_id: uuid.UUID,
+        request: AgentInvokeRequest,
+    ) -> AgentInvokeResponse:
         """Invoke an agent by type."""
         # Load definition
         definition = await self.definitions.get_by_type(request.agent_type)
@@ -55,6 +57,8 @@ class AgentRuntime:
 
         # Create execution record
         execution = AgentExecution(
+            tenant_id=tenant_id,
+            user_id=user_id,
             agent_type=request.agent_type,
             correlation_id=request.correlation_id,
             status="running",
@@ -63,7 +67,7 @@ class AgentRuntime:
         )
         execution = await self.executions.create(execution)
 
-        start_time = datetime.now(UTC)
+        start_time = datetime.now(timezone.utc)
         total_tokens = 0
         llm_calls = 0
         all_tool_calls: list[dict] = []
@@ -89,7 +93,7 @@ class AgentRuntime:
 
             # ReAct loop
             output_text = ""
-            for _iteration in range(MAX_REACT_ITERATIONS):
+            for iteration in range(MAX_REACT_ITERATIONS):
                 if tools:
                     result = await self.llm.complete_with_tools(
                         messages=messages,
@@ -108,22 +112,18 @@ class AgentRuntime:
                     for tc in result["tool_calls"]:
                         tool_args = json.loads(tc["function"]["arguments"])
                         tool_result = await tool_registry.invoke(tc["function"]["name"], **tool_args)
-                        all_tool_calls.append(
-                            {
-                                "tool_id": tc["function"]["name"],
-                                "arguments": tool_args,
-                                "result": tool_result.model_dump(),
-                            }
-                        )
+                        all_tool_calls.append({
+                            "tool_id": tc["function"]["name"],
+                            "arguments": tool_args,
+                            "result": tool_result.model_dump(),
+                        })
 
                         messages.append({"role": "assistant", "content": None, "tool_calls": [tc]})
-                        messages.append(
-                            {
-                                "role": "tool",
-                                "tool_call_id": tc["id"],
-                                "content": json.dumps(tool_result.model_dump(), default=str),
-                            }
-                        )
+                        messages.append({
+                            "role": "tool",
+                            "tool_call_id": tc["id"],
+                            "content": json.dumps(tool_result.model_dump(), default=str),
+                        })
                 else:
                     output_text = await self.llm.complete(
                         messages=messages,
@@ -134,7 +134,7 @@ class AgentRuntime:
                     llm_calls += 1
                     break
 
-            duration_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
+            duration_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
 
             # Update execution record
             await self.executions.update_status(
@@ -169,7 +169,7 @@ class AgentRuntime:
             )
 
         except Exception as e:
-            duration_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
+            duration_ms = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
             await self.executions.update_status(
                 execution.id,
                 "failed",

@@ -54,14 +54,29 @@ class SemanticMemoryStore:
         query_embedding: list[float],
         limit: int = 10,
         domain: str | None = None,
+        domains: list[str] | None = None,
     ) -> list[SemanticMemoryModel]:
         """Search semantic memories by embedding similarity."""
         results = await self.repo.search_by_embedding(
             embedding=query_embedding,
             limit=limit,
             domain=domain,
+            domains=domains,
         )
         # Track access for importance scoring
         for mem in results:
             await self.repo.increment_access(mem.id)
         return results
+
+    async def list_memories(
+        self,
+        domain: str | None = None,
+        domains: list[str] | None = None,
+        limit: int = 50,
+    ) -> list[SemanticMemoryModel]:
+        """List semantic memories without vector search."""
+        return await self.repo.list_all(domain=domain, domains=domains, limit=limit)
+
+    async def forget(self, memory_id) -> SemanticMemoryModel | None:
+        """Soft-delete a semantic memory."""
+        return await self.repo.soft_delete(memory_id)

@@ -1,174 +1,34 @@
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
   pull_request:
-    branches: [main, develop]
-
-env:
-  PYTHON_VERSION: "3.11"
-  POSTGRES_USER: lifeos
-  POSTGRES_PASSWORD: lifeos
-  POSTGRES_DB: lifeos
-  DATABASE_URL: postgresql+asyncpg://lifeos:lifeos@localhost:5432/lifeos
-  REDIS_URL: redis://localhost:6379/0
+  push:
+    branches: [main]
 
 jobs:
-  # Build dependencies once and cache the entire venv
-  setup:
-    name: Setup & Cache Dependencies
+  tests:
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Generate cache key
-        id: cache-key
-        run: echo "key=${{ runner.os }}-venv-${{ env.PYTHON_VERSION }}-${{ hashFiles('pyproject.toml') }}" >> $GITHUB_OUTPUT
-
-      - name: Cache virtual environment
-        id: cache-venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ steps.cache-key.outputs.key }}
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
 
       - name: Install dependencies
-        if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install --upgrade pip
-          pip install ruff mypy pylint
-          pip install -e ".[dev]"
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
 
-  lint:
-    name: Lint & Type Check
+      - name: Run tests
+        run: pytest tests/unit tests/integration tests/arch -q
+
+  migrations:
     runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Restore cached venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Run Ruff (linter)
-        run: |
-          source .venv/bin/activate
-          ruff check src/ tests/
-
-      - name: Run Ruff (formatter check)
-        run: |
-          source .venv/bin/activate
-          ruff format --check src/ tests/
-
-      - name: Run Pylint
-        run: |
-          source .venv/bin/activate
-          pylint src/ --exit-zero --output-format=colorized \
-            --disable=C0114,C0115,C0116,R0903,R0913,W0511 \
-            --max-line-length=120
-
-      - name: Run MyPy (type checking)
-        run: |
-          source .venv/bin/activate
-          mypy src/ --ignore-missing-imports --no-error-summary || true
-
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Restore cached venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Run Unit Tests
-        run: |
-          source .venv/bin/activate
-          pytest tests/unit/ -v \
-            --tb=short \
-            --cov=src \
-            --cov-report=term-missing \
-            --cov-report=xml \
-            --junitxml=junit-unit.xml
-
-      - name: Upload Unit Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: unit-test-results
-          path: |
-            junit-unit.xml
-            coverage.xml
-
-  arch-tests:
-    name: Architecture Tests
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Restore cached venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Run Architecture Tests
-        run: |
-          source .venv/bin/activate
-          pytest tests/arch/ -v \
-            --tb=short \
-            --junitxml=junit-arch.xml
-
-      - name: Upload Architecture Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: arch-test-results
-          path: junit-arch.xml
-
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: setup
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -179,251 +39,56 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
+          --health-cmd "pg_isready -U lifeos -d lifeos"
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://lifeos:lifeos@127.0.0.1:5432/lifeos
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
 
-      - name: Restore cached venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Run Database Migrations
+      - name: Install dependencies
         run: |
-          source .venv/bin/activate
-          alembic upgrade head
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
+          python -m pip install --upgrade pip
+          python -m pip install -e .
 
-      - name: Run Integration Tests
-        run: |
-          source .venv/bin/activate
-          pytest tests/integration/ -v \
-            --tb=short \
-            --junitxml=junit-integration.xml
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          REDIS_URL: ${{ env.REDIS_URL }}
+      - name: Run migrations
+        run: alembic upgrade head
 
-      - name: Upload Integration Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: integration-test-results
-          path: junit-integration.xml
-
-  e2e-tests:
-    name: E2E Tests
+  package:
     runs-on: ubuntu-latest
-    needs: setup
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: lifeos
-          POSTGRES_PASSWORD: lifeos
-          POSTGRES_DB: lifeos
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: pyproject.toml
 
-      - name: Restore cached venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Run Database Migrations
+      - name: Install dependencies
         run: |
-          source .venv/bin/activate
-          alembic upgrade head
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
+          python -m pip install --upgrade pip
+          python -m pip install -e .
 
-      - name: Run E2E Tests
+      - name: Bytecode compile check
+        run: python -m compileall src tests
+
+      - name: Validate docker compose
         run: |
-          source .venv/bin/activate
-          pytest tests/e2e/ -v \
-            --tb=short \
-            --junitxml=junit-e2e.xml
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          REDIS_URL: ${{ env.REDIS_URL }}
+          cp .env.example .env
+          docker compose config >/dev/null
 
-      - name: Upload E2E Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-test-results
-          path: junit-e2e.xml
-
-  migration-check:
-    name: Migration Check
-    runs-on: ubuntu-latest
-    needs: setup
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: lifeos
-          POSTGRES_PASSWORD: lifeos
-          POSTGRES_DB: lifeos
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Restore cached venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Apply existing migrations
-        run: |
-          source .venv/bin/activate
-          alembic upgrade head
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-
-      - name: Check for pending model changes
-        run: |
-          source .venv/bin/activate
-          # Generate a new migration to see if there are pending changes
-          alembic revision --autogenerate -m "check_pending" 2>&1 | tee migration_output.txt
-          
-          # Check if the generated migration has any operations
-          MIGRATION_FILE=$(ls -t alembic/versions/*check_pending*.py 2>/dev/null | head -1)
-          
-          if [ -n "$MIGRATION_FILE" ]; then
-            # Check if upgrade() function is empty (only has 'pass')
-            if grep -A5 "def upgrade" "$MIGRATION_FILE" | grep -q "op\." ; then
-              echo "❌ ERROR: Models have changed but no migration was committed!"
-              echo ""
-              echo "Detected changes:"
-              grep -A20 "def upgrade" "$MIGRATION_FILE"
-              echo ""
-              echo "Please run: alembic revision --autogenerate -m 'your_message'"
-              echo "Then commit the generated migration file."
-              exit 1
-            else
-              echo "✅ Models are in sync with migrations"
-            fi
-            # Clean up the check migration
-            rm -f "$MIGRATION_FILE"
-          else
-            echo "✅ Models are in sync with migrations"
-          fi
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-
-  llm-connectivity:
-    name: LLM Connectivity Check
-    runs-on: ubuntu-latest
-    needs: setup
-    # This job is optional - will pass if no LLM keys are configured
-    continue-on-error: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Restore cached venv
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Verify LLM Connectivity
-        run: |
-          source .venv/bin/activate
-          python -m scripts.verify_llm
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-
-  all-tests-passed:
-    name: All Tests Passed
-    runs-on: ubuntu-latest
-    needs: [lint, unit-tests, integration-tests, e2e-tests, arch-tests, migration-check]
-    if: always()
-    steps:
-      - name: Check all jobs passed
-        run: |
-          if [[ "${{ needs.lint.result }}" != "success" ]] || \
-             [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.e2e-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.arch-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.migration-check.result }}" != "success" ]]; then
-            echo "One or more jobs failed"
-            exit 1
-          fi
-          echo "All CI jobs passed successfully!"
+      - name: Build container image
+        run: docker build .

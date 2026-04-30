@@ -1,7 +1,6 @@
 """
 Database access layer for agent entities.
 """
-
 import uuid
 
 from sqlalchemy import select, update
@@ -50,16 +49,27 @@ class AgentExecutionRepository:
     async def get_by_id(self, execution_id: uuid.UUID) -> AgentExecution | None:
         return await self.session.get(AgentExecution, execution_id)
 
-    async def update_status(self, execution_id: uuid.UUID, status: str, **kwargs: object) -> None:
+    async def update_status(
+        self, execution_id: uuid.UUID, status: str, **kwargs: object
+    ) -> None:
         values = {"status": status, **kwargs}
-        await self.session.execute(update(AgentExecution).where(AgentExecution.id == execution_id).values(**values))
+        await self.session.execute(
+            update(AgentExecution)
+            .where(AgentExecution.id == execution_id)
+            .values(**values)
+        )
 
-    async def list_recent(
+    async def list_by_user(
         self,
+        tenant_id: uuid.UUID,
+        user_id: uuid.UUID,
         agent_type: str | None = None,
         limit: int = 20,
     ) -> list[AgentExecution]:
-        stmt = select(AgentExecution)
+        stmt = select(AgentExecution).where(
+            AgentExecution.tenant_id == tenant_id,
+            AgentExecution.user_id == user_id,
+        )
         if agent_type:
             stmt = stmt.where(AgentExecution.agent_type == agent_type)
         stmt = stmt.order_by(AgentExecution.created_at.desc()).limit(limit)

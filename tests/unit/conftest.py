@@ -57,6 +57,7 @@ def mock_llm_client() -> MagicMock:
 def mock_db_session() -> AsyncMock:
     """Mock async database session."""
     session = AsyncMock()
+    session.add = MagicMock()
     session.flush = AsyncMock()
     session.commit = AsyncMock()
     session.rollback = AsyncMock()
