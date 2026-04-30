@@ -23,15 +23,17 @@ class Settings(Base):
 
     __tablename__ = "core_settings"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUIDType, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUIDType, primary_key=True, default=uuid.uuid4)
     timezone: Mapped[str] = mapped_column(String(50), nullable=False, server_default="UTC")
     language: Mapped[str] = mapped_column(String(10), nullable=False, server_default="en")
     preferences: Mapped[dict] = mapped_column(JSONType, nullable=False, default=dict)
     active_domains: Mapped[list[str]] = mapped_column(StringListType, nullable=False, default=list)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now(), onupdate=utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now(), onupdate=utcnow
+    )
 
 
 class DomainRegistry(Base):
@@ -39,9 +41,7 @@ class DomainRegistry(Base):
 
     __tablename__ = "core_domain_registry"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUIDType, primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUIDType, primary_key=True, default=uuid.uuid4)
     domain_id: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     version: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -52,4 +52,6 @@ class DomainRegistry(Base):
     installed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
     )
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now(), onupdate=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now(), onupdate=utcnow
+    )

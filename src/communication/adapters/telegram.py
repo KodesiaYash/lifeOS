@@ -5,7 +5,6 @@ Telegram channel adapter.
 import httpx
 import structlog
 
-from src.config import settings
 from src.communication.adapters.base import ChannelAdapter
 from src.communication.schemas import (
     ChannelType,
@@ -14,6 +13,7 @@ from src.communication.schemas import (
     NormalizedInboundEvent,
     OutboundMessage,
 )
+from src.config import settings
 
 logger = structlog.get_logger()
 

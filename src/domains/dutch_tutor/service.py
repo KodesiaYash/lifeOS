@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import TYPE_CHECKING
 
 from src.memory.service import GENERAL_MEMORY_NAMESPACE, MemoryService
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 NAME_RE = re.compile(r"\bmy name is (?P<value>[A-Za-z][A-Za-z '\-]{1,40})\b", re.IGNORECASE)
 NATIVE_LANGUAGE_RE = re.compile(
@@ -98,11 +100,7 @@ class TranslationRoundTrip:
             )
 
         source_label = "Nederlands" if self.detected_language == "dutch" else "English"
-        return (
-            f"{source_label}: {self.input_word}\n"
-            f"English: {self.english_word}\n"
-            f"Back to Dutch: {self.back_to_dutch}"
-        )
+        return f"{source_label}: {self.input_word}\nEnglish: {self.english_word}\nBack to Dutch: {self.back_to_dutch}"
 
 
 class DutchTutorService:

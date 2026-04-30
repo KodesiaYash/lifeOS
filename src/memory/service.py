@@ -7,10 +7,9 @@ specific domain namespace such as ``dutch_tutor``.
 
 from __future__ import annotations
 
-import uuid
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
 from src.knowledge.embedding import EmbeddingService
@@ -23,6 +22,11 @@ from src.memory.schemas import (
 )
 from src.memory.semantic import SemanticMemoryStore
 from src.memory.structured import StructuredMemory
+
+if TYPE_CHECKING:
+    import uuid
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

@@ -4,13 +4,16 @@ Startup bootstrap for communication channels and channel accounts.
 
 from __future__ import annotations
 
-import uuid
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import TYPE_CHECKING
 
 from src.communication.repository import ChannelAccountRepository, ChannelRepository
 from src.communication.schemas import ChannelType
 from src.config import settings
+
+if TYPE_CHECKING:
+    import uuid
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class CommunicationBootstrap:

@@ -31,10 +31,7 @@ class MemoryFactRepository:
             MemoryFact.key == key,
             MemoryFact.active.is_(True),
         )
-        if domain is None:
-            stmt = stmt.where(MemoryFact.domain.is_(None))
-        else:
-            stmt = stmt.where(MemoryFact.domain == domain)
+        stmt = stmt.where(MemoryFact.domain.is_(None)) if domain is None else stmt.where(MemoryFact.domain == domain)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -102,7 +99,9 @@ class SemanticMemoryRepository:
         domains: list[str] | None = None,
         limit: int = 50,
     ) -> list[SemanticMemory]:
-        stmt = select(SemanticMemory).where(SemanticMemory.deleted_at.is_(None)).order_by(SemanticMemory.created_at.desc())
+        stmt = (
+            select(SemanticMemory).where(SemanticMemory.deleted_at.is_(None)).order_by(SemanticMemory.created_at.desc())
+        )
         if domains:
             stmt = stmt.where(SemanticMemory.source_domain.in_(domains))
         elif domain is not None:
@@ -172,9 +171,5 @@ class ConversationSummaryRepository:
         if not domains:
             return summaries[:limit]
 
-        filtered = [
-            summary
-            for summary in summaries
-            if set(summary.domains_involved or []).intersection(domains)
-        ]
+        filtered = [summary for summary in summaries if set(summary.domains_involved or []).intersection(domains)]
         return filtered[:limit]

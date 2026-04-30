@@ -61,12 +61,12 @@ class SemanticRetriever:
             )
             for chunk in chunks:
                 results.append(
-                        RetrievalResult(
-                            id=chunk.id,
-                            source="knowledge_chunk",
-                            content=chunk.content,
-                            relevance_score=0.0,
-                            created_at=chunk.created_at,
+                    RetrievalResult(
+                        id=chunk.id,
+                        source="knowledge_chunk",
+                        content=chunk.content,
+                        relevance_score=0.0,
+                        created_at=chunk.created_at,
                         metadata={"document_id": str(chunk.document_id), "chunk_index": chunk.chunk_index},
                     )
                 )

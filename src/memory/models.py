@@ -28,9 +28,7 @@ class MemoryFact(TimestampedBase):
     source: Mapped[str] = mapped_column(String(50), nullable=False, server_default="user_stated")
     source_event_id: Mapped[uuid.UUID | None] = mapped_column(UUIDType, nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    superseded_by: Mapped[uuid.UUID | None] = mapped_column(
-        UUIDType, ForeignKey("mem_facts.id"), nullable=True
-    )
+    superseded_by: Mapped[uuid.UUID | None] = mapped_column(UUIDType, ForeignKey("mem_facts.id"), nullable=True)
 
 
 class SemanticMemory(TimestampedBase):

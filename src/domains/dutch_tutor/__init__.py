@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import TYPE_CHECKING
 
 from src.domains.dutch_tutor.service import DutchTutorService
 from src.domains.plugin import (
@@ -12,6 +12,9 @@ from src.domains.plugin import (
     MemoryCategoryDeclaration,
     ToolDeclaration,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 DOMAIN_ID = "dutch_tutor"
 DOMAIN_NAME = "Dutch Tutor"

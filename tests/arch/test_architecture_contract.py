@@ -6,7 +6,6 @@ This keeps architecture-affecting changes anchored to one shared contract file.
 
 from pathlib import Path
 
-
 CONTRACT_PATH = Path(__file__).parent.parent.parent / "docs" / "ARCHITECTURE_CONTRACT.md"
 
 

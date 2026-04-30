@@ -8,11 +8,9 @@ adapter -> communication persistence -> orchestrator -> event bus -> dispatcher
 
 from __future__ import annotations
 
-import uuid
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Awaitable, Callable
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import TYPE_CHECKING
 
 from src.communication.dispatcher import dispatch_message
 from src.communication.schemas import DeliveryReceipt, NormalizedInboundEvent, OutboundMessage
@@ -20,6 +18,11 @@ from src.communication.service import CommunicationService
 from src.events.bus import EventBus, event_bus
 from src.events.schemas import PlatformEvent
 from src.kernel.orchestrator import GlobalOrchestrator, OrchestratorContext
+
+if TYPE_CHECKING:
+    import uuid
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 Dispatcher = Callable[[OutboundMessage], Awaitable[DeliveryReceipt]]
 

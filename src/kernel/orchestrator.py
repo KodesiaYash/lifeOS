@@ -12,7 +12,6 @@ import uuid
 from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents.registry import AgentRegistry, agent_registry
 from src.communication.schemas import ContentType
@@ -23,14 +22,16 @@ from src.events.schemas import PlatformEvent
 from src.kernel.llm_client import LLMClient
 from src.kernel.tool_registry import ToolRegistry, tool_registry
 from src.memory.assembler import MemoryAssembler
-from src.memory.schemas import ScopedMemoryPacket
 from src.memory.service import GENERAL_MEMORY_NAMESPACE, MemoryService
 from src.memory.short_term import ShortTermMemory
 from src.retrieval.coordinator import RetrievalCoordinator
 from src.retrieval.schemas import RetrievalRequest, RetrievalStrategy
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from src.domains.plugin import DomainPlugin
+    from src.memory.schemas import ScopedMemoryPacket
 
 logger = structlog.get_logger()
 
@@ -114,7 +115,7 @@ class GlobalOrchestrator:
         event_bus_instance: EventBus | None = None,
         tool_registry_instance: ToolRegistry | None = None,
         agent_registry_instance: AgentRegistry | None = None,
-        domain_plugins: dict[str, "DomainPlugin"] | None = None,
+        domain_plugins: dict[str, DomainPlugin] | None = None,
     ) -> None:
         self.session = session
         self.llm = llm or LLMClient()

@@ -1,24 +1,24 @@
 import asyncio
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
+from src.agents.models import AgentDefinition, AgentExecution  # noqa: F401
+from src.communication.models import ChannelAccount, ChannelIdentity, Conversation, Message  # noqa: F401
 from src.config import settings
-from src.shared.base_model import Base
+from src.connectors.models import ConnectorDefinition, ConnectorInstance, SyncLog  # noqa: F401
 
 # Import all models so Alembic can discover them
-from src.core.models import Settings, DomainRegistry  # noqa: F401
-from src.memory.models import MemoryFact, SemanticMemory, ConversationSummary  # noqa: F401
-from src.knowledge.models import KnowledgeDocument, KnowledgeChunk, KnowledgeRelation  # noqa: F401
-from src.communication.models import ChannelAccount, ChannelIdentity, Conversation, Message  # noqa: F401
+from src.core.models import DomainRegistry, Settings  # noqa: F401
 from src.events.models import Event  # noqa: F401
+from src.knowledge.models import KnowledgeChunk, KnowledgeDocument, KnowledgeRelation  # noqa: F401
+from src.memory.models import ConversationSummary, MemoryFact, SemanticMemory  # noqa: F401
 from src.orchestration.models import WorkflowDefinition, WorkflowExecution, WorkflowStepExecution  # noqa: F401
-from src.scheduling.models import ScheduledJob, BackgroundTask  # noqa: F401
-from src.connectors.models import ConnectorDefinition, ConnectorInstance, SyncLog  # noqa: F401
-from src.agents.models import AgentDefinition, AgentExecution  # noqa: F401
+from src.scheduling.models import BackgroundTask, ScheduledJob  # noqa: F401
+from src.shared.base_model import Base
 
 # Alembic Config object
 config = context.config
