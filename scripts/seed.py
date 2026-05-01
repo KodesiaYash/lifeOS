@@ -1,98 +1,67 @@
 """
-Seed script: populates the database with initial data for development/testing.
-Creates default settings, domain registrations, and communication channels.
-
-Single-user mode: No tenant/user/workspace models needed.
+Seed script: populate the database with the current platform scaffolding.
 
 Usage:
     python -m scripts.seed
 """
+
+from __future__ import annotations
+
 import asyncio
 
+from src.communication.bootstrap import CommunicationBootstrap
+from src.core.models import DomainRegistry
+from src.core.repository import DomainRegistryRepository, SettingsRepository
+from src.domains.loader import discover_domain_plugins
 from src.shared.database import async_session_factory
 
 
 async def seed_data() -> None:
-    """Seed the database with initial development data."""
+    """Seed singleton settings, domain registry entries, and default channels."""
     async with async_session_factory() as session:
-        from src.core.models import DomainRegistry, Settings
+        settings_repo = SettingsRepository(session)
+        domain_repo = DomainRegistryRepository(session)
 
-        # --- Default Settings ---
-        default_settings = Settings(
-            key="app",
-            value={
-                "timezone": "UTC",
-                "language": "en",
-                "theme": "system",
-                "notifications_enabled": True,
-            },
-        )
-        session.add(default_settings)
+        settings = await settings_repo.get_or_create()
+        settings.timezone = settings.timezone or "UTC"
+        settings.language = settings.language or "en"
+        settings.preferences = settings.preferences or {
+            "theme": "system",
+            "notifications_enabled": True,
+        }
 
-        # --- Domain Registrations ---
-        domains = [
-            {
-                "domain_id": "health",
-                "name": "Health & Fitness",
-                "version": "0.1.0",
-                "description": "Nutrition, exercise, sleep, vitals, and wellness tracking.",
-                "manifest": {"tools": [], "agents": [], "event_types": []},
-            },
-            {
-                "domain_id": "finance",
-                "name": "Finance",
-                "version": "0.1.0",
-                "description": "Transaction tracking, budgets, investments, and financial goals.",
-                "manifest": {"tools": [], "agents": [], "event_types": []},
-            },
-            {
-                "domain_id": "productivity",
-                "name": "Productivity",
-                "version": "0.1.0",
-                "description": "Tasks, projects, goals, habits, and time tracking.",
-                "manifest": {"tools": [], "agents": [], "event_types": []},
-            },
-            {
-                "domain_id": "relationships",
-                "name": "Relationships",
-                "version": "0.1.0",
-                "description": "Contacts, interactions, relationship health, and social events.",
-                "manifest": {"tools": [], "agents": [], "event_types": []},
-            },
-            {
-                "domain_id": "learning",
-                "name": "Learning",
-                "version": "0.1.0",
-                "description": "Courses, reading, skills, certifications, and learning goals.",
-                "manifest": {"tools": [], "agents": [], "event_types": []},
-            },
-            {
-                "domain_id": "home",
-                "name": "Home & Environment",
-                "version": "0.1.0",
-                "description": "Household tasks, maintenance, inventory, and smart home.",
-                "manifest": {"tools": [], "agents": [], "event_types": []},
-            },
-        ]
-        for d in domains:
-            session.add(DomainRegistry(**d))
+        plugins = discover_domain_plugins()
+        active_domains: list[str] = []
+        for plugin in plugins:
+            active_domains.append(plugin.domain_id)
+            payload = {
+                "name": plugin.name,
+                "version": plugin.version,
+                "description": plugin.description,
+                "manifest": plugin.get_manifest(),
+                "active": True,
+            }
+            existing = await domain_repo.get_by_domain_id(plugin.domain_id)
+            if existing is None:
+                await domain_repo.register(
+                    DomainRegistry(
+                        domain_id=plugin.domain_id,
+                        **payload,
+                    )
+                )
+            else:
+                await domain_repo.update(plugin.domain_id, **payload)
 
-        # --- Default Communication Channels ---
-        from src.communication.models import Channel
+        settings.active_domains = sorted(active_domains)
 
-        channels = [
-            Channel(type="whatsapp", display_name="WhatsApp"),
-            Channel(type="telegram", display_name="Telegram"),
-            Channel(type="rest_api", display_name="REST API"),
-        ]
-        for ch in channels:
-            session.add(ch)
+        bootstrap = CommunicationBootstrap(session)
+        channel_bindings = await bootstrap.ensure_default_accounts()
 
         await session.commit()
-        print("✅ Seed data created successfully.")
-        print(f"   Settings: default app settings created")
-        print(f"   Domains:  {len(domains)} registered")
-        print(f"   Channels: {len(channels)} registered")
+        print("Seed data created successfully.")
+        print(f"  Settings row ready: timezone={settings.timezone} language={settings.language}")
+        print(f"  Domains registered: {len(active_domains)}")
+        print(f"  Channel accounts ready: {len(channel_bindings)}")
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ class StructuredRetriever:
         self,
         query: str,
         domain: str | None = None,
+        domains: list[str] | None = None,
         category: str | None = None,
         max_results: int = 20,
     ) -> list[RetrievalResult]:
@@ -32,9 +33,9 @@ class StructuredRetriever:
         Also performs simple keyword matching on fact keys and values.
         """
         if category:
-            facts = await self.fact_repo.list_by_category(category, domain)
+            facts = await self.fact_repo.list_by_category(category, domain=domain, domains=domains)
         else:
-            facts = await self.fact_repo.list_all_active(domain)
+            facts = await self.fact_repo.list_all_active(domain=domain, domains=domains)
 
         results: list[RetrievalResult] = []
         query_lower = query.lower()

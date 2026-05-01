@@ -45,4 +45,5 @@ htmlcov/
 docker-compose.override.yml
 
 # Windsurf
-.windsurf/
+.windsurf/*
+!.windsurf/workflows/

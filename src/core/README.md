@@ -15,7 +15,7 @@ Core platform entities for single-user mode: settings and domain registry.
 
 ## Key Design Decisions
 
-- **Single-user mode** — no multi-tenancy, no user management needed
+- **Single-user mode** — no account partitioning layer needed
 - **Settings** — key-value store for app configuration (timezone, language, theme)
 - **DomainRegistry** — tracks available domain plugins and their manifests
 

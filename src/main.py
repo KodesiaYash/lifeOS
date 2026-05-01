@@ -37,9 +37,37 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # --- Load domain plugins (auto-wires tools, agents, events, memory, routers) ---
     from src.agents.registry import agent_registry
+    from src.communication.adapters.rest_api import RestApiAdapter
+    from src.communication.adapters.telegram import TelegramAdapter
+    from src.communication.bootstrap import CommunicationBootstrap
+    from src.communication.dispatcher import register_adapter
+    from src.communication.schemas import ChannelType
     from src.domains.loader import get_loaded_plugins, load_domain_plugins
     from src.events.bus import event_bus
     from src.kernel.tool_registry import tool_registry
+    from src.shared.database import async_session_factory
+
+    async with async_session_factory() as session:
+        bootstrap = CommunicationBootstrap(session)
+        channel_account_ids = await bootstrap.ensure_default_accounts()
+        await session.commit()
+
+    register_adapter(ChannelType.REST_API, RestApiAdapter())
+    if settings.DUTCH_TUTOR_ENABLED:
+        telegram_adapter = TelegramAdapter(
+            bot_token=settings.TELEGRAM_BOT_TOKEN,
+            webhook_secret=settings.TELEGRAM_WEBHOOK_SECRET,
+            api_base=settings.TELEGRAM_API_BASE,
+        )
+        register_adapter(
+            ChannelType.TELEGRAM,
+            telegram_adapter,
+        )
+        if settings.TELEGRAM_WEBHOOK_URL:
+            await telegram_adapter.set_webhook(
+                settings.TELEGRAM_WEBHOOK_URL,
+                secret_token=settings.TELEGRAM_WEBHOOK_SECRET or None,
+            )
 
     wiring_report = await load_domain_plugins(
         app=app,
@@ -53,6 +81,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.agent_registry = agent_registry
     app.state.event_bus = event_bus
     app.state.domain_wiring_report = wiring_report
+    app.state.channel_account_ids = channel_account_ids
 
     yield
 
@@ -103,10 +132,12 @@ def _register_routers(application: FastAPI) -> None:
     from src.communication.router import router as communication_router
     from src.core.router import router as core_router
     from src.events.router import router as events_router
+    from src.memory.router import router as memory_router
 
     application.include_router(core_router, prefix="/api/v1/core", tags=["core"])
     application.include_router(communication_router, prefix="/api/v1/communication", tags=["communication"])
     application.include_router(events_router, prefix="/api/v1/events", tags=["events"])
+    application.include_router(memory_router, prefix="/api/v1/memory", tags=["memory"])
 
 
 app = create_app()

@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.communication.models import (
     Channel,
+    ChannelAccount,
     ChannelIdentity,
     Conversation,
     Message,
@@ -27,6 +28,61 @@ class ChannelRepository:
             select(Channel).where(Channel.type == channel_type, Channel.active.is_(True))
         )
         return result.scalar_one_or_none()
+
+    async def get_or_create(self, channel_type: str, display_name: str, config: dict | None = None) -> Channel:
+        channel = await self.get_by_type(channel_type)
+        if channel is not None:
+            return channel
+
+        channel = Channel(
+            type=channel_type,
+            display_name=display_name,
+            config=config or {},
+            active=True,
+        )
+        self.session.add(channel)
+        await self.session.flush()
+        return channel
+
+
+class ChannelAccountRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def get_by_ref(self, channel_id: uuid.UUID, account_ref: str) -> ChannelAccount | None:
+        result = await self.session.execute(
+            select(ChannelAccount).where(
+                ChannelAccount.channel_id == channel_id,
+                ChannelAccount.account_ref == account_ref,
+                ChannelAccount.active.is_(True),
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def get_or_create(
+        self,
+        *,
+        channel_id: uuid.UUID,
+        account_ref: str,
+        display_name: str | None = None,
+        credentials_ref: str | None = None,
+        config: dict | None = None,
+    ) -> ChannelAccount:
+        account = await self.get_by_ref(channel_id, account_ref)
+        if account is not None:
+            return account
+
+        account = ChannelAccount(
+            channel_id=channel_id,
+            account_ref=account_ref,
+            display_name=display_name,
+            credentials_ref=credentials_ref,
+            config=config or {},
+            active=True,
+        )
+        self.session.add(account)
+        await self.session.flush()
+        return account
 
 
 class ChannelIdentityRepository:
@@ -72,6 +128,7 @@ class ConversationRepository:
         self,
         channel_identity_id: uuid.UUID,
         channel_type: str,
+        external_chat_id: str | None = None,
     ) -> Conversation:
         result = await self.session.execute(
             select(Conversation)
@@ -83,15 +140,23 @@ class ConversationRepository:
         )
         conversation = result.scalar_one_or_none()
         if conversation is not None:
+            if external_chat_id and conversation.external_chat_id != external_chat_id:
+                conversation.external_chat_id = external_chat_id
+                await self.session.flush()
             return conversation
 
         conversation = Conversation(
             channel_identity_id=channel_identity_id,
             channel_type=channel_type,
+            external_chat_id=external_chat_id,
         )
         self.session.add(conversation)
         await self.session.flush()
         return conversation
+
+    async def get_by_id(self, conversation_id: uuid.UUID) -> Conversation | None:
+        result = await self.session.execute(select(Conversation).where(Conversation.id == conversation_id))
+        return result.scalar_one_or_none()
 
     async def increment_message_count(self, conversation_id: uuid.UUID) -> None:
         await self.session.execute(

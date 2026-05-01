@@ -72,15 +72,15 @@ class KnowledgeChunkRepository:
         embedding: list[float],
         limit: int = 10,
     ) -> list[KnowledgeChunk]:
-        stmt = (
-            select(KnowledgeChunk)
-            .where(
-                KnowledgeChunk.embedding.isnot(None),
-                KnowledgeChunk.deleted_at.is_(None),
-            )
-            .order_by(KnowledgeChunk.embedding.cosine_distance(embedding))
-            .limit(limit)
+        stmt = select(KnowledgeChunk).where(
+            KnowledgeChunk.embedding.isnot(None),
+            KnowledgeChunk.deleted_at.is_(None),
         )
+        if hasattr(KnowledgeChunk.embedding, "cosine_distance"):
+            stmt = stmt.order_by(KnowledgeChunk.embedding.cosine_distance(embedding))
+        else:
+            stmt = stmt.order_by(KnowledgeChunk.created_at.desc())
+        stmt = stmt.limit(limit)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

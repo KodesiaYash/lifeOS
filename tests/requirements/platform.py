@@ -118,7 +118,7 @@ REQUIREMENTS = [
             "6 domains scaffolded: health, finance, productivity, relationships, learning, home",
             "Each domain has manifest.py with MANIFEST dict",
             "Manifest declares event_types, tools, agents, memory_categories",
-            "Domains can be activated/deactivated via DomainRegistry",
+            "Domains can be activated/deactivated per tenant via DomainRegistry",
         ],
         "priority": "P0",
         "test_ids": [],

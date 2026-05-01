@@ -10,6 +10,7 @@ Test tiers:
 """
 
 import asyncio
+import os
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
@@ -21,9 +22,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from src.shared.base_model import Base
 
 # ---------------------------------------------------------------------------
-# Database (SQLite in-memory for unit tests; overridden in integration/)
+# Database (use DATABASE_URL if set, otherwise SQLite in-memory)
 # ---------------------------------------------------------------------------
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+TEST_DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 test_session_factory = async_sessionmaker(
@@ -43,12 +44,22 @@ def event_loop():
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():
-    """Create all tables before each test, drop after."""
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """Create all tables before each test, drop after.
+    
+    For SQLite: create/drop tables each test.
+    For PostgreSQL: assume migrations have been run, just clean data.
+    """
+    is_sqlite = "sqlite" in TEST_DATABASE_URL
+    
+    if is_sqlite:
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    
     yield
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    
+    if is_sqlite:
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest_asyncio.fixture

@@ -12,7 +12,7 @@ An AI-powered life management platform built as a modular monolith. The kernel p
 ├──────────┼──────────┼──────────┴──────────┼─────────────┤
 │ Retrieval│  Kernel  │  Orchestration      │   Agents    │
 ├──────────┼──────────┼─────────────────────┼─────────────┤
-│Scheduling│Connectors│     6 Domain Plugins (scaffolds)  │
+│Scheduling│Connectors│     7 Domain Plugins (scaffolds)  │
 ├──────────┴──────────┴───────────────────────────────────┤
 │         PostgreSQL (pgvector)  │  Redis  │  MinIO       │
 └─────────────────────────────────────────────────────────┘
@@ -61,7 +61,8 @@ src/
     ├── productivity/
     ├── relationships/
     ├── learning/
-    └── home/
+    ├── home/
+    └── dutch_tutor/
 ```
 
 ## Quick Start
@@ -78,49 +79,54 @@ cp .env.example .env
 # Edit .env with your API keys and secrets
 ```
 
-### 2. Start infrastructure
-
-```bash
-docker compose up -d postgres redis minio
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -e ".[dev]"
-```
-
-### 4. Run migrations
-
-```bash
-alembic upgrade head
-```
-
-### 5. Seed data
-
-```bash
-python -m scripts.seed
-```
-
-### 6. Start the app
-
-```bash
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### 7. Start background worker
-
-```bash
-arq src.scheduling.worker.WorkerSettings
-```
-
-## Docker Compose (full stack)
+### 2. Start the full local stack
 
 ```bash
 docker compose up --build
 ```
 
-Services: `app` (8000), `worker`, `postgres` (5432), `redis` (6379), `minio` (9000/9001).
+The stack brings up:
+
+- `app` on `http://localhost:8000`
+- `worker`
+- `postgres` on `localhost:5432`
+- `redis` on `localhost:6379`
+- `minio` on `localhost:9000` and `localhost:9001`
+
+### 3. Install dependencies for local Python workflows
+
+```bash
+pip install -e ".[dev]"
+```
+
+### 4. Validate the promoted Dutch tutor domain
+
+```bash
+curl -X POST http://localhost:8000/api/v1/domains/dutch_tutor/translate \
+  -H "Content-Type: application/json" \
+  -d '{"word":"huis"}'
+```
+
+Expected response includes:
+
+- `english_word: "house"`
+- `back_to_dutch: "huis"`
+
+### 5. Optional manual workflows
+
+```bash
+alembic upgrade head
+python -m scripts.seed
+arq src.scheduling.worker.WorkerSettings
+```
+
+## Telegram Setup
+
+```bash
+export TELEGRAM_WEBHOOK_URL="https://<your-public-url>/api/v1/communication/webhooks/telegram"
+```
+
+When `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, and `TELEGRAM_WEBHOOK_URL` are set, the app registers the webhook on startup. For local Telegram testing, expose port `8000` through a tunnel such as Cloudflare Tunnel or ngrok and point `TELEGRAM_WEBHOOK_URL` at that public HTTPS URL.
 
 ## Running Tests
 
@@ -163,6 +169,7 @@ Each module has its own README:
 ## Design Documents
 
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) — Product-driven ideology, domain plugin system, testing philosophy
+- [`docs/ARCHITECTURE_CONTRACT.md`](docs/ARCHITECTURE_CONTRACT.md) — Change contract for inbound flow, orchestration, events, memory, and tests
 - [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md) — Full system architecture
 - [`docs/SCHEMA_DESIGN.md`](docs/SCHEMA_DESIGN.md) — Database schema reference
 - [`src/domains/README.md`](src/domains/README.md) — Domain plugin developer guide
@@ -183,7 +190,7 @@ Each module has its own README:
 - [x] Orchestration module (workflow engine with step types)
 - [x] Agents module (runtime, registry)
 - [x] Scheduling module (APScheduler + arq)
-- [x] Domain plugin scaffolding (6 domains)
+- [x] Domain plugin scaffolding (7 domains, including `dutch_tutor`)
 - [x] Connectors scaffold
 - [x] Seed scripts
 - [x] Tests

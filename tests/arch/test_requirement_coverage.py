@@ -78,7 +78,7 @@ class TestRequirementCoverage:
     def test_all_requirements_loaded(self):
         """All requirement files parse and produce requirements."""
         assert len(self.requirements) > 0, "No requirements found"
-        # Should have requirements from at least 6 domains + platform
+        # Should have requirements from at least 7 domains + platform
         domains = {r["id"].split("-")[1] for r in self.requirements}
         assert len(domains) >= 6, f"Expected >= 6 requirement domains, found {domains}"
 

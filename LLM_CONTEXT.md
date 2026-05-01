@@ -11,7 +11,7 @@
 - **GitHub:** https://github.com/KodesiaYash/lifeOS
 - **Phase:** Phase 0 complete (kernel foundation). Phase 1 (domain implementations) pending.
 - **Tech stack:** Python 3.11+, FastAPI, SQLAlchemy 2.0 async, PostgreSQL 16 + pgvector, Redis 7, LiteLLM, structlog, Pydantic Settings, APScheduler, arq, Docker Compose.
-- **Mode:** Single-user (self-hosted). Multi-tenancy can be added later for SaaS.
+- **Mode:** Single-user and self-hosted.
 
 ---
 
@@ -21,7 +21,7 @@ An AI-powered **personal** life management platform designed to run on your own 
 
 Built as a **modular monolith** — one deployable with clean module boundaries, event-driven communication, and a plugin architecture for domains.
 
-**Single-user by design:** Clone the repo, run it, and it works for you. No tenant or user IDs required. The architecture is extensible for multi-tenancy later if you want to offer it as a SaaS.
+**Single-user by design:** Clone the repo, run it, and it works for one person on one self-hosted instance. The current data model intentionally stays simple.
 
 ---
 
@@ -49,10 +49,10 @@ Full documentation: `ARCHITECTURE.md` (project root).
 src/
 ├── config.py                # Pydantic Settings (env vars)
 ├── main.py                  # FastAPI app factory + domain plugin loading in lifespan
-├── dependencies.py          # DI: db session only (no tenant/user context needed)
+├── dependencies.py          # DI: db session only
 ├── shared/                  # Database, base models, crypto, pagination, time
-│   └── base_model.py        # Base, TimestampedBase (no tenant_id)
-├── core/                    # Settings, domain registry (no tenants/users)
+│   └── base_model.py        # Base, TimestampedBase
+├── core/                    # Settings and domain registry
 │   ├── models.py            # Settings, DomainRegistry
 │   ├── schemas.py           # SettingsRead/Update, DomainRegistryRead/Update
 │   └── middleware.py        # RequestContextMiddleware (request tracing)
@@ -126,7 +126,7 @@ At startup, `src/domains/loader.py` auto-wires every plugin into:
 Registries stored on `app.state` for dependency injection.
 
 ### Current domain totals:
-- **26 tools**, **9 agents**, **12 event handlers**, **29 memory categories** across 6 domains
+- **27 tools**, **10 agents**, **13 event handlers**, **33 memory categories** across 7 domains
 - All handlers are async stubs returning `{"status": "stub", ...}` — ready for Phase 1 implementation
 
 ### Naming convention (enforced by validate()):
@@ -226,10 +226,10 @@ def test_meal_message_triggers_log_meal_tool():
 ## Key Technical Details
 
 ### Single-User Architecture
-- **No tenant_id or user_id** — All data belongs to the single user running the app
+- **Local instance ownership** — All data belongs to the person running the app
 - **`TimestampedBase`** — Base class for models with id, created_at, updated_at, deleted_at
 - **`Settings`** model — Singleton for app preferences (timezone, language, active_domains)
-- **Extensible for multi-tenancy** — Add tenant_id column and filtering later if needed
+- **Simple query model** — Repositories avoid extra ownership filters on every query
 
 ### EventBus (`src/events/bus.py`)
 - Internal attribute: `_handlers` (defaultdict of lists), NOT `_subscribers`
@@ -276,7 +276,7 @@ All 18 steps of Phase 0 are done:
 11. Orchestration module (workflow engine with step types)
 12. Agents module (runtime with ReAct tool-calling, registry)
 13. Scheduling module (APScheduler + arq worker)
-14. Domain plugin system (DomainPlugin protocol, loader, all 6 domains implemented)
+14. Domain plugin system (DomainPlugin protocol, loader, all 7 domains implemented, including dutch_tutor)
 15. Connectors scaffold (base connector, service, models)
 16. Seed data script (scripts/seed.py)
 17. Full test suite (unit/integration/e2e/drift/arch + requirements + README)
@@ -335,7 +335,7 @@ pytest, pytest-asyncio, pytest-cov, httpx, factory-boy, ruff, mypy, pre-commit, 
 
 ## Important Conventions
 
-1. **Single-user mode** — No tenant_id or user_id in models, schemas, or dependencies
+1. **Single-user mode** — No extra ownership-scoping columns in models, schemas, or dependencies
 2. **All tool handlers must be async** — enforced by arch tests
 3. **All identifiers namespaced with domain** — `health.log_meal`, not `log_meal`
 4. **Every domain exports `plugin = MyPlugin()`** in `__init__.py`

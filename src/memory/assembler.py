@@ -9,7 +9,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.memory.repository import ConversationSummaryRepository, MemoryFactRepository, SemanticMemoryRepository
-from src.memory.schemas import MemoryFactRead, MemoryPacket, SemanticMemoryRead
+from src.memory.schemas import MemoryFactRead, MemoryPacket, ScopedMemoryPacket, SemanticMemoryRead
 from src.memory.short_term import ShortTermMemory
 
 logger = structlog.get_logger()
@@ -42,6 +42,7 @@ class MemoryAssembler:
         self,
         query_embedding: list[float] | None = None,
         domain: str | None = None,
+        domains: list[str] | None = None,
         token_budget: int = DEFAULT_TOKEN_BUDGET,
         session_id: str | None = None,
     ) -> MemoryPacket:
@@ -63,7 +64,7 @@ class MemoryAssembler:
             remaining -= 200  # Estimate for session context
 
         # 2. Structured facts (highest priority — user preferences, goals, etc.)
-        facts = await self.facts_repo.list_all_active(domain)
+        facts = await self.facts_repo.list_all_active(domain=domain, domains=domains)
         for fact in facts:
             if remaining < TOKENS_PER_FACT:
                 break
@@ -77,6 +78,7 @@ class MemoryAssembler:
                 embedding=query_embedding,
                 limit=max_semantic,
                 domain=domain,
+                domains=domains,
             )
             for mem in semantic_results:
                 if remaining < TOKENS_PER_SEMANTIC:
@@ -87,7 +89,7 @@ class MemoryAssembler:
         # 4. Recent conversation summaries
         if remaining > TOKENS_PER_SUMMARY:
             max_summaries = min(5, remaining // TOKENS_PER_SUMMARY)
-            summaries = await self.summaries_repo.list_recent(limit=max_summaries)
+            summaries = await self.summaries_repo.list_recent(limit=max_summaries, domains=domains)
             for s in summaries:
                 if remaining < TOKENS_PER_SUMMARY:
                     break
@@ -103,3 +105,36 @@ class MemoryAssembler:
             tokens_used=packet.total_tokens_estimate,
         )
         return packet
+
+    async def assemble_scoped(
+        self,
+        namespace: str,
+        general_namespace: str,
+        query_embedding: list[float] | None = None,
+        token_budget: int = DEFAULT_TOKEN_BUDGET,
+        session_id: str | None = None,
+    ) -> ScopedMemoryPacket:
+        """
+        Assemble context for a routed domain, splitting general memory from domain-scoped memory.
+        """
+        packet = await self.assemble(
+            query_embedding=query_embedding,
+            domains=[general_namespace, namespace],
+            token_budget=token_budget,
+            session_id=session_id,
+        )
+        return ScopedMemoryPacket(
+            namespace=namespace,
+            general_namespace=general_namespace,
+            general_facts=[fact for fact in packet.user_facts if fact.domain == general_namespace],
+            scoped_facts=[fact for fact in packet.user_facts if fact.domain == namespace],
+            general_semantic_memories=[
+                memory for memory in packet.semantic_memories if memory.source_domain == general_namespace
+            ],
+            scoped_semantic_memories=[
+                memory for memory in packet.semantic_memories if memory.source_domain == namespace
+            ],
+            recent_summaries=packet.recent_summaries,
+            session_context=packet.session_context,
+            total_tokens_estimate=packet.total_tokens_estimate,
+        )

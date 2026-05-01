@@ -3,17 +3,23 @@ SQLAlchemy declarative base with standard columns for all models.
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from src.shared.sql_types import UUIDType
 
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
 
     pass
+
+
+def utcnow() -> datetime:
+    """Timezone-aware timestamp default shared across models."""
+    return datetime.now(UTC)
 
 
 class TimestampedBase(Base):
@@ -25,21 +31,22 @@ class TimestampedBase(Base):
     __abstract__ = True
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDType,
         primary_key=True,
         default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        server_default=text("now()"),
+        default=utcnow,
+        server_default=func.now(),
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        server_default=text("now()"),
-        onupdate=datetime.utcnow,
+        default=utcnow,
+        server_default=func.now(),
+        onupdate=utcnow,
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),

@@ -10,7 +10,7 @@
 
 - Project skeleton: pyproject.toml, Dockerfile, docker-compose.yml, .env.example, alembic
 - All 12 platform modules: shared, core, events, communication, memory, knowledge, retrieval, kernel, orchestration, agents, scheduling, connectors
-- Domain scaffolds for 6 domains (health, finance, productivity, relationships, learning, home) — simple __init__.py with DOMAIN_ID/NAME/VERSION + manifest.py + router.py + models.py + README.md
+- Domain scaffolds for 7 domains (health, finance, productivity, relationships, learning, home, dutch_tutor) — dutch_tutor now includes a promoted translation flow, manifest, router, and memory contract
 - Seed script, per-module READMEs, global README
 - Initial flat test files (7 files): test_shared, test_events, test_knowledge, test_retrieval, test_kernel, test_agents, test_schemas
 
@@ -54,11 +54,11 @@
 
 **Single-user mode refactor:**
 
-- Removed all tenant/user/workspace models and references from codebase
+- Simplified the data model and runtime to a single-user shape
 - Updated `scripts/seed.py` to use `Settings` instead of `Tenant/User/Workspace`
 - Removed `TenantAwareBase` alias from `src/shared/base_model.py`
 - Updated all READMEs (core, agents, events, shared) for single-user mode
-- Updated tests to remove `tenant_id`/`user_id` from event and retrieval schemas
+- Updated tests to match the simplified event and retrieval schemas
 - Updated `tests/requirements/platform.py` REQ-PLAT-001 to "Single-User Data Model"
 
 **CI/CD pipeline (GitHub Actions):**

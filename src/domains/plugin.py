@@ -101,7 +101,7 @@ class DomainPlugin(abc.ABC):
       ✓ Memory           — your categories are registered for structured facts
       ✓ Orchestration    — your workflows are loaded into the engine
       ✓ FastAPI Router   — your router is mounted under /api/v1/domains/{domain_id}
-      ✓ Domain Registry  — your metadata is stored in the DB for domain activation
+      ✓ Domain Registry  — your metadata is stored in the DB for tenant activation
     """
 
     # ── Required metadata (override in subclass) ──────────────────────

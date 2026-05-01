@@ -57,6 +57,7 @@ class CommunicationService:
         conversation = await self.conversations.get_or_create(
             channel_identity_id=identity.id,
             channel_type=event.channel_type,
+            external_chat_id=event.external_chat_id,
         )
 
         # 4. Persist message
@@ -64,7 +65,7 @@ class CommunicationService:
             conversation_id=conversation.id,
             direction="inbound",
             content_type=event.content_type,
-            text=event.text,
+            body=event.text,
             media_ref=event.media_url,
             media_mime_type=event.media_mime_type,
             idempotency_key=event.idempotency_key,
@@ -96,7 +97,7 @@ class CommunicationService:
             conversation_id=conversation_id,
             direction="outbound",
             content_type="text",
-            text=text,
+            body=text,
             channel_message_id=channel_message_id,
             idempotency_key=f"out-{uuid.uuid4()}",
             correlation_id=correlation_id,

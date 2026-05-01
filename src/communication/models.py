@@ -7,35 +7,37 @@ Single-user mode: No tenant_id or user_id references.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.shared.base_model import Base, TimestampedBase
+from src.shared.base_model import Base, TimestampedBase, utcnow
+from src.shared.sql_types import JSONType, UUIDType
 
 
 class Channel(Base):
     __tablename__ = "comm_channels"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUIDType, primary_key=True, default=uuid.uuid4)
     type: Mapped[str] = mapped_column(String(50), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    config: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    config: Mapped[dict] = mapped_column(JSONType, nullable=False, default=dict)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now(), onupdate=utcnow
+    )
 
 
 class ChannelAccount(TimestampedBase):
     __tablename__ = "comm_channel_accounts"
 
-    channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("comm_channels.id"), nullable=False)
+    channel_id: Mapped[uuid.UUID] = mapped_column(UUIDType, ForeignKey("comm_channels.id"), nullable=False)
     account_ref: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     credentials_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    config: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    config: Mapped[dict] = mapped_column(JSONType, nullable=False, default=dict)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
@@ -43,16 +45,16 @@ class ChannelIdentity(TimestampedBase):
     __tablename__ = "comm_channel_identities"
 
     channel_account_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("comm_channel_accounts.id"), nullable=False, index=True
+        UUIDType, ForeignKey("comm_channel_accounts.id"), nullable=False, index=True
     )
     external_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONType, nullable=False, default=dict)
     first_seen_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("now()")
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
     )
     last_seen_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=text("now()")
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
     )
 
 
@@ -60,14 +62,16 @@ class Conversation(TimestampedBase):
     __tablename__ = "comm_conversations"
 
     channel_identity_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("comm_channel_identities.id"), nullable=False, index=True
+        UUIDType, ForeignKey("comm_channel_identities.id"), nullable=False, index=True
     )
     channel_type: Mapped[str] = mapped_column(String(50), nullable=False)
     external_chat_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
+    )
     last_message_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     message_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONType, nullable=False, default=dict)
 
     messages: Mapped[list["Message"]] = relationship(back_populates="conversation", lazy="selectin")
 
@@ -76,7 +80,7 @@ class Message(TimestampedBase):
     __tablename__ = "comm_messages"
 
     conversation_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("comm_conversations.id"), nullable=False, index=True
+        UUIDType, ForeignKey("comm_conversations.id"), nullable=False, index=True
     )
     direction: Mapped[str] = mapped_column(String(10), nullable=False)
     content_type: Mapped[str] = mapped_column(String(20), nullable=False, server_default="text")
@@ -85,30 +89,37 @@ class Message(TimestampedBase):
     media_mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     channel_message_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     idempotency_key: Mapped[str] = mapped_column(String(255), nullable=False)
-    correlation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
-    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    correlation_id: Mapped[uuid.UUID | None] = mapped_column(UUIDType, nullable=True, index=True)
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONType, nullable=False, default=dict)
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
+
+    @property
+    def text(self) -> str | None:
+        """Compatibility alias for older codepaths and API schemas."""
+        return self.body
 
 
 class MessageEvent(TimestampedBase):
     __tablename__ = "comm_message_events"
 
-    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    message_id: Mapped[uuid.UUID] = mapped_column(UUIDType, nullable=False, index=True)
     event_type: Mapped[str] = mapped_column(String(50), nullable=False)
     channel_status: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
-    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=text("now()"))
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONType, nullable=False, default=dict)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utcnow, server_default=func.now()
+    )
 
 
 class Attachment(TimestampedBase):
     __tablename__ = "comm_attachments"
 
-    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    message_id: Mapped[uuid.UUID] = mapped_column(UUIDType, nullable=False, index=True)
     file_name: Mapped[str | None] = mapped_column(String(500), nullable=True)
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
     size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     storage_path: Mapped[str] = mapped_column(String(1024), nullable=False)
-    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONType, nullable=False, default=dict)

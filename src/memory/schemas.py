@@ -68,3 +68,41 @@ class MemoryPacket(BaseModel):
     recent_summaries: list[str] = Field(default_factory=list)
     session_context: dict = Field(default_factory=dict)
     total_tokens_estimate: int = 0
+
+
+class MemoryFactUpsertRequest(BaseModel):
+    namespace: str = "general"
+    category: str
+    key: str
+    value: str
+    structured_value: dict | None = None
+    confidence: float = 1.0
+    source: str = "api"
+
+
+class SemanticMemoryStoreRequest(BaseModel):
+    namespace: str = "general"
+    memory_type: str
+    content: str
+    related_domains: list[str] = Field(default_factory=list)
+    confidence: float = 1.0
+    importance: float = 0.5
+    metadata: dict = Field(default_factory=dict)
+
+
+class ScopedMemoryRetrieveRequest(BaseModel):
+    namespace: str
+    query: str
+    session_id: str | None = None
+
+
+class ScopedMemoryPacket(BaseModel):
+    namespace: str
+    general_namespace: str = "general"
+    general_facts: list[MemoryFactRead] = Field(default_factory=list)
+    scoped_facts: list[MemoryFactRead] = Field(default_factory=list)
+    general_semantic_memories: list[SemanticMemoryRead] = Field(default_factory=list)
+    scoped_semantic_memories: list[SemanticMemoryRead] = Field(default_factory=list)
+    recent_summaries: list[str] = Field(default_factory=list)
+    session_context: dict = Field(default_factory=dict)
+    total_tokens_estimate: int = 0

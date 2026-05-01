@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     DEBUG: bool = True
     LOG_LEVEL: str = "DEBUG"
+    APP_HOST: str = "0.0.0.0"
+    APP_PORT: int = 8000
 
     # --- Database ---
     DATABASE_URL: str = "postgresql+asyncpg://lifeos:lifeos@localhost:5432/lifeos"
@@ -64,6 +66,14 @@ class Settings(BaseSettings):
     # --- Scheduling ---
     SCHEDULER_ENABLED: bool = True
     WORKER_ENABLED: bool = True
+
+    # --- Telegram / Routed Domain Bots ---
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_WEBHOOK_SECRET: str = ""
+    TELEGRAM_WEBHOOK_URL: str = ""
+    TELEGRAM_API_BASE: str = "https://api.telegram.org"
+    DUTCH_TUTOR_BOT_ID: str = "dutch_tutor"
+    DUTCH_TUTOR_ENABLED: bool = True
 
     @property
     def is_production(self) -> bool:

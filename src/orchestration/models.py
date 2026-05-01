@@ -7,11 +7,11 @@ Single-user mode: No tenant_id or user_id references.
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.shared.base_model import TimestampedBase
+from src.shared.sql_types import JSONType, UUIDType
 
 
 class WorkflowDefinition(TimestampedBase):
@@ -24,8 +24,8 @@ class WorkflowDefinition(TimestampedBase):
     domain: Mapped[str | None] = mapped_column(String(100), nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     trigger_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    trigger_config: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
-    steps: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    trigger_config: Mapped[dict] = mapped_column(JSONType, nullable=False, default=dict)
+    steps: Mapped[dict] = mapped_column(JSONType, nullable=False, default=dict)
     active: Mapped[bool] = mapped_column(Integer, nullable=False, default=True)
 
 
@@ -35,13 +35,13 @@ class WorkflowExecution(TimestampedBase):
     __tablename__ = "orch_workflow_executions"
 
     definition_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("orch_workflow_definitions.id"), nullable=False
+        UUIDType, ForeignKey("orch_workflow_definitions.id"), nullable=False
     )
-    correlation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
+    correlation_id: Mapped[uuid.UUID | None] = mapped_column(UUIDType, nullable=True, index=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default="pending")
     current_step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    context: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
-    result: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    context: Mapped[dict] = mapped_column(JSONType, nullable=False, default=dict)
+    result: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -53,14 +53,14 @@ class WorkflowStepExecution(TimestampedBase):
     __tablename__ = "orch_workflow_step_executions"
 
     execution_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("orch_workflow_executions.id"), nullable=False, index=True
+        UUIDType, ForeignKey("orch_workflow_executions.id"), nullable=False, index=True
     )
     step_index: Mapped[int] = mapped_column(Integer, nullable=False)
     step_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    step_config: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    step_config: Mapped[dict] = mapped_column(JSONType, nullable=False, default=dict)
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default="pending")
-    input_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    output_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    input_data: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
+    output_data: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

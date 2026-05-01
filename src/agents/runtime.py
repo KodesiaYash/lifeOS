@@ -1,7 +1,5 @@
 """
 Agent runtime: executes agent definitions with ReAct-style tool calling loops.
-
-Single-user mode: No tenant_id or user_id needed.
 """
 
 import json
@@ -41,7 +39,12 @@ class AgentRuntime:
         self.executions = AgentExecutionRepository(session)
         self.llm = LLMClient()
 
-    async def invoke(self, request: AgentInvokeRequest) -> AgentInvokeResponse:
+    async def invoke(
+        self,
+        tenant_id: uuid.UUID,
+        user_id: uuid.UUID,
+        request: AgentInvokeRequest,
+    ) -> AgentInvokeResponse:
         """Invoke an agent by type."""
         # Load definition
         definition = await self.definitions.get_by_type(request.agent_type)
@@ -55,6 +58,8 @@ class AgentRuntime:
 
         # Create execution record
         execution = AgentExecution(
+            tenant_id=tenant_id,
+            user_id=user_id,
             agent_type=request.agent_type,
             correlation_id=request.correlation_id,
             status="running",

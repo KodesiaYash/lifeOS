@@ -6,7 +6,7 @@ Generic agent system with ReAct-style tool calling runtime.
 
 | File | Purpose |
 |------|---------|
-| `models.py` | SQLAlchemy models: AgentDefinition (global), AgentExecution (session-scoped) |
+| `models.py` | SQLAlchemy models: AgentDefinition (global), AgentExecution (tenant-scoped) |
 | `schemas.py` | Pydantic schemas: create/read/invoke request/response |
 | `repository.py` | Database access for agent definitions and executions |
 | `runtime.py` | `AgentRuntime` — ReAct loop: LLM call → tool calls → repeat → response |
