@@ -7,21 +7,56 @@ Integration tests:
   - Test module-to-module data flows through real DB
 """
 
+from __future__ import annotations
+
+import uuid
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock
 
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import test_session_factory
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
 
 @pytest_asyncio.fixture
-async def session() -> AsyncSession:
+async def session():
     """Alias for db_session — used in integration tests for clarity."""
     async with test_session_factory() as session:
         yield session
         await session.rollback()
+
+
+@pytest_asyncio.fixture
+async def channel_account(session):
+    """Create a Channel and ChannelAccount for communication tests."""
+    from src.communication.models import Channel, ChannelAccount
+
+    channel = Channel(
+        id=uuid.uuid4(),
+        type="telegram",
+        display_name="Test Telegram Channel",
+        config={},
+        active=True,
+    )
+    session.add(channel)
+    await session.flush()
+
+    account = ChannelAccount(
+        id=uuid.uuid4(),
+        channel_id=channel.id,
+        account_ref="test_bot",
+        display_name="Test Bot",
+        config={},
+        active=True,
+    )
+    session.add(account)
+    await session.flush()
+
+    return account
 
 
 @pytest.fixture

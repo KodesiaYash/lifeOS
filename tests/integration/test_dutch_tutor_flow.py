@@ -80,7 +80,7 @@ def _agent_registry_from_plugin(plugin: DutchTutorPlugin) -> AgentRegistry:
 @pytest.mark.req("REQ-PLAT-010")
 @pytest.mark.scenario("SCN-REQ-PLAT-010-01")
 @pytest.mark.asyncio
-async def test_pipeline_persists_inbound_before_orchestration(session):
+async def test_pipeline_persists_inbound_before_orchestration(session, channel_account):
     orchestrator = _PersistCheckOrchestrator(session)
     dispatcher = AsyncMock(return_value=DeliveryReceipt(channel_message_id="tg-1", status="sent"))
     pipeline = InboundMessagePipeline(
@@ -91,7 +91,7 @@ async def test_pipeline_persists_inbound_before_orchestration(session):
     )
 
     result = await pipeline.handle(
-        channel_account_id=uuid.uuid4(),
+        channel_account_id=channel_account.id,
         event=NormalizedInboundEvent(
             channel_type=ChannelType.TELEGRAM,
             channel_user_id="999",
@@ -116,7 +116,7 @@ async def test_pipeline_persists_inbound_before_orchestration(session):
 @pytest.mark.scenario("SCN-REQ-PLAT-010-04")
 @pytest.mark.scenario("SCN-REQ-DUTCH-001-04")
 @pytest.mark.asyncio
-async def test_pipeline_emits_events_and_persists_roundtrip_translation(session, mock_redis):
+async def test_pipeline_emits_events_and_persists_roundtrip_translation(session, channel_account, mock_redis):
     event_bus = EventBus()
     captured = []
 
@@ -160,7 +160,7 @@ async def test_pipeline_emits_events_and_persists_roundtrip_translation(session,
     )
 
     result = await pipeline.handle(
-        channel_account_id=uuid.uuid4(),
+        channel_account_id=channel_account.id,
         event=NormalizedInboundEvent(
             channel_type=ChannelType.TELEGRAM,
             channel_user_id="999",
